@@ -30,3 +30,11 @@
   link [extra cost] and then the QR for the chosen link [the QR for the GitHub link is ready].
 - After the event: delete every entry by 30.11.2026 [admin page: close, "Dzēst visus datus"]; then retire the admin
   key and the collector's route [steps in the private gateway's notes].
+
+## 21.10.2026: v0.1.001 LIVE
+
+- Phone cover: the logo's lower line runs on through the text to the bottom of the screen; the language buttons part
+  exactly at the line; the SIXT logo keeps clear space where the line passes [picked from four layouts: through the
+  text, cut by the text, down the side, two-tone].
+- pulse.js stretches every mark's lower line and its pulse to the bottom of its screen [cover, thank-you, the
+  question rail on every step], refit on step changes and resize; the rail's CSS extension is gone.
