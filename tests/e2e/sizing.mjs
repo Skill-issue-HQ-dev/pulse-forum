@@ -10,7 +10,7 @@ const SIZES = [[2560, 1440], [1920, 1080], [1536, 864], [1440, 900], [1366, 768]
 // SIZING_ONLY="390x844,1280x800" limits a quick run to those sizes [the live resizes are skipped then].
 const ONLY = (process.env.SIZING_ONLY || "").split(",").filter(Boolean);
 const RESIZES = [[1000, 800], [860, 700], [859, 700], [600, 900], [390, 844], [1280, 800], [1600, 700], [900, 1000], [1237, 767]];
-const LV = new Set(["1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
+const LV = new Set(["2560x1440", "1920x1080", "1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
 const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
 
 /** In the page: every layout fault of the visible screen, as text. */
@@ -82,6 +82,9 @@ function faults(first) {
         right = Math.max(right, range.getBoundingClientRect().right);
       }
       if (Math.abs(box.left - (vw - right)) > vw * 0.1) f.push(`logo and words off centre ${Math.round(box.left)} | ${Math.round(vw - right)}`);
+      // the words keep up with the logo on a big window: the headline is at least 27% as tall as the logo's letters
+      const head = parseFloat(getComputedStyle(screen.querySelector(".cover-body .display")).fontSize);
+      if (head < 0.27 * (letters.bottom - letters.top)) f.push(`words small for the logo: ${Math.round(head)} px to ${Math.round(letters.bottom - letters.top)} px letters`);
     }
     const pick = screen.querySelector(".lang-pick");
     if (pick && shown(pick)) {
@@ -98,6 +101,11 @@ function faults(first) {
     if (lineLeft - right < 4) f.push(`content touches the line: ${Math.round(lineLeft - right)} px`);
     // a wide window has no empty band between the step and the line [the step splits into question | answers]
     if (vw >= 1200 && lineLeft - right > vw * 0.12) f.push(`empty band before the line: ${Math.round(lineLeft - right)} px`);
+    // on a computer the step's type keeps its share of a tall window [headline 7.5%, text 1.6% of the height]
+    if (!phone) {
+      const h = parseFloat(getComputedStyle(step.querySelector(".display")).fontSize), t = parseFloat(getComputedStyle(step).fontSize);
+      if (h < vh * 0.075 || t < vh * 0.016) f.push(`type small for the window: headline ${Math.round(h)} px, text ${Math.round(t)} px at ${vh} px tall`);
+    }
   }
   return f;
 }

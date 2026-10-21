@@ -22,10 +22,10 @@
   --orange: #E07D14;
   --display: "Saira EC", "Barlow Condensed", "Arial Narrow", sans-serif;
   --body: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  --gutter: 20px;
-  --rail-w: 60px;
-  --radius: 10px;
-  --field-radius: 6px;
+  --gutter: 1.25rem;
+  --rail-w: 3.75rem;
+  --radius: 0.625rem;
+  --field-radius: 0.375rem;
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
   --line2-left: 53.24%;
   --line2-w: 7.01%;
@@ -34,12 +34,15 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
+/* Sizes are in rem, so the guest page grows with a big window: from 1440 x 900 up the root size follows the window
+   [1.2x at 1920 x 1080, 1.6x at 2560 x 1440]; below that it is the browser's own. The organisers' page keeps its size. */
+html.guest { font-size: max(100%, min(100svh / 56.25, 100vw / 90)); }
 button, .choice, .check, summary { touch-action: manipulation; }
 body {
   margin: 0;
   background: var(--coal);
   color: var(--white);
-  font: 500 20px/1.35 var(--body);
+  font: 500 1.25rem/1.35 var(--body);
   -webkit-font-smoothing: antialiased;
 }
 body[data-screen="start"], body[data-screen="done"] { background: var(--lime); }
@@ -56,42 +59,42 @@ button, input, textarea { font: inherit; color: inherit; }
 /* Type */
 .display {
   margin: 0;
-  font: 700 clamp(36px, 10vw, 84px)/0.94 var(--display);
+  font: 700 clamp(2.25rem, 10vw, 5.25rem)/0.94 var(--display);
   text-transform: uppercase;
   letter-spacing: 0.01em;
   overflow-wrap: break-word;
   /* Lines of even length, never one short word left alone on the last line. */
   text-wrap: balance;
 }
-.display--echo { font-size: clamp(22px, 6vw, 40px); margin-top: 10px; }
+.display--echo { font-size: clamp(1.375rem, 6vw, 2.5rem); margin-top: 0.625rem; }
 .date, .step-label {
-  margin: 0 0 14px;
-  font: 700 16px/1.2 var(--body);
+  margin: 0 0 0.875rem;
+  font: 700 1rem/1.2 var(--body);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-.lead { display: block; margin: 16px 0 0; max-width: 34em; text-wrap: pretty; }
+.lead { display: block; margin: 1rem 0 0; max-width: 34em; text-wrap: pretty; }
 
 /* Buttons */
 .btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-height: 58px; padding: 6px 28px;
+  min-height: 3.625rem; padding: 0.375rem 1.75rem;
   border: 0; border-radius: var(--radius);
-  font: 700 23px/1 var(--display); text-transform: uppercase; letter-spacing: 0.02em;
+  font: 700 1.4375rem/1 var(--display); text-transform: uppercase; letter-spacing: 0.02em;
   cursor: pointer;
 }
 .btn:disabled { cursor: progress; opacity: 0.6; }
 .btn--coal { background: var(--coal); color: var(--lime); }
 .btn--lime { background: var(--lime); color: var(--coal); }
-.btn--line { background: transparent; color: var(--white); box-shadow: inset 0 0 0 2px var(--white); }
+.btn--line { background: transparent; color: var(--white); box-shadow: inset 0 0 0 0.125rem var(--white); }
 .btn--square {
-  flex: none; width: 58px; padding: 0;
-  background: center / 20px 20px no-repeat
+  flex: none; width: 3.625rem; padding: 0;
+  background: center / 1.25rem 1.25rem no-repeat
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M13 3L6 10l7 7' fill='none' stroke='%23F2F5F7' stroke-width='3'/%3E%3C/svg%3E");
 }
 .link-btn {
-  padding: 8px 0; border: 0; background: none; cursor: pointer;
-  font: 700 16px/1 var(--body); text-transform: uppercase; letter-spacing: 0.05em;
+  padding: 0.5rem 0; border: 0; background: none; cursor: pointer;
+  font: 700 1rem/1 var(--body); text-transform: uppercase; letter-spacing: 0.05em;
   text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 2px;
 }
 
@@ -101,8 +104,8 @@ button, input, textarea { font: inherit; color: inherit; }
    screen's own width: container units, so a desktop scrollbar never pushes it out]. */
 .screen--lime {
   position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden; container-type: inline-size;
-  background: var(--lime); color: var(--coal); padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 16px));
-  --mark-w: min(100cqw - 2 * var(--gutter), 440px);
+  background: var(--lime); color: var(--coal); padding-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
+  --mark-w: min(100cqw - 2 * var(--gutter), 27.5rem);
 }
 .cover-mark { position: relative; width: var(--mark-w); margin: calc(var(--mark-w) * -0.27) auto 0; color: var(--white); }
 /* The mark in layers over the line's own SVG [same box, same units]: each letter, and the pulse, is its own layer,
@@ -112,95 +115,95 @@ button, input, textarea { font: inherit; color: inherit; }
 .mk-pulse { will-change: transform; }
 /* The mark's lower line runs on past the mark to the screen's bottom [pulse.js stretches it]; the text sits over it. */
 .cover-mark .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; overflow: visible; }
-.cover-body { position: relative; z-index: 1; padding: 18px 0 0; margin: 0 auto; max-width: var(--mark-w); }
-.lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; max-width: 28rem; }
-.live { display: flex; align-items: center; gap: 14px; margin: 26px 0 0; }
-.live-num { font: 700 46px/1 var(--display); font-variant-numeric: tabular-nums; }
-.live-words { display: flex; flex-direction: column; font: 700 15px/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.04em; }
-.partner { display: flex; align-items: center; gap: 12px; margin: 30px 0 0; font: 700 16px/1.2 var(--body); }
-.partner img { height: 34px; width: auto; }
+.cover-body { position: relative; z-index: 1; padding: 1.125rem 0 0; margin: 0 auto; max-width: var(--mark-w); }
+.lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.75rem; max-width: 28rem; }
+.live { display: flex; align-items: center; gap: 0.875rem; margin: 1.625rem 0 0; }
+.live-num { font: 700 2.875rem/1 var(--display); font-variant-numeric: tabular-nums; }
+.live-words { display: flex; flex-direction: column; font: 700 0.9375rem/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.04em; }
+.partner { display: flex; align-items: center; gap: 0.75rem; margin: 1.875rem 0 0; font: 700 1rem/1.2 var(--body); }
+.partner img { height: 2.125rem; width: auto; }
 /* Phones: the line runs on through the text to the bottom and behind the two equal language buttons; the SIXT logo
    sits at the left under its words, clear of the line, so the line never breaks around it. */
 @media (max-width: 859px) {
   .lang-pick { max-width: none; }
   /* The words scale with their column [the logo's width], not the window, so a tablet never pushes the buttons down. */
-  .cover-body .display:not(.display--echo) { font-size: max(32px, calc(var(--mark-w) * 0.115)); }
-  .cover-body .display--echo { font-size: max(19px, calc(var(--mark-w) * 0.066)); }
-  .partner { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .cover-body .display:not(.display--echo) { font-size: max(2rem, calc(var(--mark-w) * 0.115)); }
+  .cover-body .display--echo { font-size: max(1.1875rem, calc(var(--mark-w) * 0.066)); }
+  .partner { flex-direction: column; align-items: flex-start; gap: 0.625rem; }
 }
-.lead--coal { color: var(--coal); font-size: 21px; }
+.lead--coal { color: var(--coal); font-size: 1.3125rem; }
 
 /* The flow on coal, with the PULSE rail on the right like the brand book pages */
 .flow {
   position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden;
-  padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(36px, calc(env(safe-area-inset-bottom) + 20px)) max(var(--gutter), env(safe-area-inset-left));
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(2.25rem, calc(env(safe-area-inset-bottom) + 1.25rem)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }
 .rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; overflow: visible; }
-.flow-top { padding-top: max(18px, env(safe-area-inset-top)); min-height: 52px; }
+.flow-top { padding-top: max(1.125rem, env(safe-area-inset-top)); min-height: 3.25rem; }
 /* Content clears the rail's LINE (53.24% into the mark, 7.01% wide), not the whole mark: the letters sit above the steps. */
-.step { border: 0; margin: 0; padding: 18px calc(var(--rail-w) * 0.4676 + 14px) 0 0; min-width: 0; max-width: 44rem; }
+.step { border: 0; margin: 0; padding: 1.125rem calc(var(--rail-w) * 0.4676 + 0.875rem) 0 0; min-width: 0; max-width: 44rem; }
 .step .step-label { color: var(--orange); display: flex; align-items: center; }
-.dots { display: inline-flex; gap: 6px; margin-right: 12px; }
-.dots i { width: 11px; height: 11px; box-shadow: inset 0 0 0 2px var(--orange); }
+.dots { display: inline-flex; gap: 0.375rem; margin-right: 0.75rem; }
+.dots i { width: 0.6875rem; height: 0.6875rem; box-shadow: inset 0 0 0 0.125rem var(--orange); }
 .dots i.on { background: var(--orange); box-shadow: none; }
 .step .display { color: var(--lime); }
 .step .display:focus { outline: none; }
-.prize { margin: 22px 0 0; padding: 2px 0 2px 14px; border-left: 4px solid var(--orange); font-weight: 700; max-width: 34em; }
+.prize { margin: 1.375rem 0 0; padding: 0.125rem 0 0.125rem 0.875rem; border-left: 0.25rem solid var(--orange); font-weight: 700; max-width: 34em; }
 
-.choices { margin-top: 30px; }
-.choices-title { margin: 0 0 10px; font-weight: 700; }
-.choices-list { display: grid; gap: 6px; }
-.choice { position: relative; display: flex; align-items: center; gap: 14px; min-height: 50px; padding: 8px 12px 8px 4px; border-radius: var(--field-radius); cursor: pointer; font-weight: 700; font-size: 21px; }
+.choices { margin-top: 1.875rem; }
+.choices-title { margin: 0 0 0.625rem; font-weight: 700; }
+.choices-list { display: grid; gap: 0.375rem; }
+.choice { position: relative; display: flex; align-items: center; gap: 0.875rem; min-height: 3.125rem; padding: 0.5rem 0.75rem 0.5rem 0.25rem; border-radius: var(--field-radius); cursor: pointer; font-weight: 700; font-size: 1.3125rem; }
 .choice input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.sq { flex: none; width: 22px; height: 22px; box-shadow: inset 0 0 0 3px var(--white); }
+.sq { flex: none; width: 1.375rem; height: 1.375rem; box-shadow: inset 0 0 0 0.1875rem var(--white); }
 .choice input:checked + .sq { background: var(--lime); box-shadow: none; }
 .choice:has(input:checked) { color: var(--lime); }
 .choice:has(input:focus-visible) { outline: 3px solid var(--lime); outline-offset: 0; }
 
-.field { margin-top: 18px; max-width: 30rem; }
-.field label { display: block; margin-bottom: 6px; font-weight: 700; font-size: 18px; }
+.field { margin-top: 1.125rem; max-width: 30rem; }
+.field label { display: block; margin-bottom: 0.375rem; font-weight: 700; font-size: 1.125rem; }
 input:not([type=checkbox]):not([type=radio]), textarea {
   display: block; width: 100%;
-  padding: 12px 14px;
-  border: 3px solid var(--white); border-radius: var(--field-radius);
+  padding: 0.75rem 0.875rem;
+  border: 0.1875rem solid var(--white); border-radius: var(--field-radius);
   background: var(--white); color: var(--coal);
-  font: 500 20px/1.3 var(--body);
+  font: 500 1.25rem/1.3 var(--body);
 }
-textarea { margin-top: 18px; min-height: 12em; resize: vertical; max-width: 40rem; }
+textarea { margin-top: 1.125rem; min-height: 12em; resize: vertical; max-width: 40rem; }
 input::placeholder, textarea::placeholder { color: #6E716F; }
 input:focus-visible, textarea:focus-visible { outline: 3px solid var(--lime); outline-offset: 2px; }
-input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 100px var(--white); -webkit-text-fill-color: var(--coal); caret-color: var(--coal); }
+input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -webkit-text-fill-color: var(--coal); caret-color: var(--coal); }
 [aria-invalid="true"] { border-color: var(--orange) !important; }
-.count { margin: 8px 0 0; font-size: 17px; font-weight: 700; }
+.count { margin: 0.5rem 0 0; font-size: 1.0625rem; font-weight: 700; }
 .count[data-state="ok"] { color: var(--lime); }
 .count[data-state="near"] { color: var(--orange); }
-.err { margin: 6px 0 0; color: var(--orange); font-weight: 700; font-size: 18px; }
+.err { margin: 0.375rem 0 0; color: var(--orange); font-weight: 700; font-size: 1.125rem; }
 .err:empty { display: none; }
 
-.check { position: relative; display: flex; gap: 14px; align-items: flex-start; margin-top: 22px; max-width: 34rem; cursor: pointer; font-size: 19px; }
+.check { position: relative; display: flex; gap: 0.875rem; align-items: flex-start; margin-top: 1.375rem; max-width: 34rem; cursor: pointer; font-size: 1.1875rem; }
 .check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.box { flex: none; width: 26px; height: 26px; margin-top: 1px; box-shadow: inset 0 0 0 3px var(--white); }
+.box { flex: none; width: 1.625rem; height: 1.625rem; margin-top: 1px; box-shadow: inset 0 0 0 0.1875rem var(--white); }
 .check input:checked + .box {
-  background: var(--lime) center / 18px 18px no-repeat
+  background: var(--lime) center / 1.125rem 1.125rem no-repeat
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='M2 9.5l4.5 4.5L16 4' fill='none' stroke='%232B2D2C' stroke-width='3'/%3E%3C/svg%3E");
   box-shadow: none;
 }
 .check input:focus-visible + .box { outline: 3px solid var(--lime); outline-offset: 3px; }
-.check input[aria-invalid="true"] + .box { box-shadow: inset 0 0 0 3px var(--orange); }
+.check input[aria-invalid="true"] + .box { box-shadow: inset 0 0 0 0.1875rem var(--orange); }
 
-.rules { margin: 12px 0 0 40px; max-width: 34rem; }
-.rules summary { cursor: pointer; color: var(--lime); font-weight: 700; font-size: 18px; text-decoration: underline; text-underline-offset: 4px; }
-.rules ul { margin: 10px 0 0; padding: 0; list-style: none; font-size: 17px; }
-.rules li { position: relative; margin-top: 8px; padding-left: 18px; }
-.rules li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 7px; height: 7px; background: var(--orange); }
+.rules { margin: 0.75rem 0 0 2.5rem; max-width: 34rem; }
+.rules summary { cursor: pointer; color: var(--lime); font-weight: 700; font-size: 1.125rem; text-decoration: underline; text-underline-offset: 4px; }
+.rules ul { margin: 0.625rem 0 0; padding: 0; list-style: none; font-size: 1.0625rem; }
+.rules li { position: relative; margin-top: 0.5rem; padding-left: 1.125rem; }
+.rules li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 0.4375rem; height: 0.4375rem; background: var(--orange); }
 
-.sending { margin: 22px 0 0; font-weight: 700; color: var(--lime); max-width: 34rem; }
+.sending { margin: 1.375rem 0 0; font-weight: 700; color: var(--lime); max-width: 34rem; }
 .sending:empty { display: none; }
-.actions { display: flex; gap: 12px; margin-top: 30px; max-width: 30rem; }
+.actions { display: flex; gap: 0.75rem; margin-top: 1.875rem; max-width: 30rem; }
 .actions .btn--lime { flex: 1; }
-.flow-foot { display: flex; align-items: center; gap: 12px; margin-top: 44px; font: 700 15px/1.2 var(--body); }
-.flow-foot img { height: 28px; width: auto; }
+.flow-foot { display: flex; align-items: center; gap: 0.75rem; margin-top: 2.75rem; font: 700 0.9375rem/1.2 var(--body); }
+.flow-foot img { height: 1.75rem; width: auto; }
 
 
 /* Wider screens: the cover lays out like the brand book, the mark on the left: full height on a wide window, narrower
@@ -208,15 +211,15 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 100px var(--white); -we
    Mark and words sit centred as one group; the words' column is about as wide as the headline, so a wide window
    leaves equal room on both sides instead of an empty band on the right. */
 @media (min-width: 860px) {
-  :root { --gutter: 6vw; --rail-w: 96px; }
-  body { font-size: 21px; }
+  :root { --gutter: 6vw; --rail-w: 6rem; }
+  body { font-size: 1.3125rem; }
   .screen--lime { display: grid; grid-template-columns: auto minmax(0, 34rem); justify-content: center; align-items: center; column-gap: 5vw; padding: 0 var(--gutter); }
   .cover-mark { width: min(100svh * 0.7107, 44vw); margin: 0; }
-  .cover-body { padding: 48px 0; margin: 0; max-width: none; }
-  .cover-body .display:not(.display--echo) { font-size: clamp(36px, min(6.6vw, 10.5svh), 84px); }
-  .cover-body .display--echo { font-size: clamp(22px, min(3.2vw, 5svh), 40px); }
-  .choices-list { grid-template-columns: 1fr 1fr; column-gap: 18px; }
-  .step { padding-right: calc(var(--rail-w) + 48px); }
+  .cover-body { padding: 3rem 0; margin: 0; max-width: none; }
+  .cover-body .display:not(.display--echo) { font-size: clamp(2.25rem, min(6.6vw, 10.5svh), 5.25rem); }
+  .cover-body .display--echo { font-size: clamp(1.375rem, min(3.2vw, 5svh), 2.5rem); }
+  .choices-list { grid-template-columns: 1fr 1fr; column-gap: 1.125rem; }
+  .step { padding-right: calc(var(--rail-w) + 3rem); }
 }
 
 /* Wide windows: each step in two columns, the question on the left and its answers on the right, so the step fills
@@ -224,6 +227,6 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 100px var(--white); -we
 @media (min-width: 1200px) {
   .step { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 5vw; align-items: start; max-width: none; }
   .step > .step-label { grid-column: 1 / -1; }
-  .step .display { font-size: clamp(56px, 5.6vw, 96px); }
+  .step .display { font-size: clamp(3.5rem, 5.6vw, 6rem); }
   .step-a > :first-child { margin-top: 0; }
 }

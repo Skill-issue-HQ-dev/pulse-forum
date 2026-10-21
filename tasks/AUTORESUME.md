@@ -56,3 +56,8 @@
   1920 px: 115 | 432 px of room before]; from 1200 px each question step splits into question | answers, so no dark
   band is left between the step and the line [up to 1085 px before]. Gate rules added: logo and words centred on a
   computer; no empty band before the line on a wide window. Phones and tablets unchanged pixel for pixel.
+- v0.2.004 [loop round 4]: big windows keep the laptop's proportions. Every size is in rem and the guest page's
+  root size follows the window from 1440 x 900 up [1.2x at 1920 x 1080, 1.6x at 2560 x 1440]; the organisers' page
+  keeps its size; every size up to 1440 x 900 is unchanged pixel for pixel. Gate rules added: the cover headline at
+  least 27% of the logo letters' height; on a computer the step headline at least 7.5% and its text 1.6% of the window
+  height; the Latvian walk also at 1920 x 1080 and 2560 x 1440.
