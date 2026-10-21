@@ -52,3 +52,7 @@
   instead of an invisible clear-space box over the line]; the logo is drawn in layers [line, pulse, each letter], so
   letters rise on the GPU and a beat repaints only the pulse: WebKit intro frames over 20 ms 6-8 -> 1; the pulse tail
   has 20 finer steps. Gate rule added: nothing may hide the line behind a box in the screen's own colour.
+- v0.2.003 [loop round 3]: wide windows. The cover and thank-you screens centre logo and words as one group [at
+  1920 px: 115 | 432 px of room before]; from 1200 px each question step splits into question | answers, so no dark
+  band is left between the step and the line [up to 1085 px before]. Gate rules added: logo and words centred on a
+  computer; no empty band before the line on a wide window. Phones and tablets unchanged pixel for pixel.

@@ -72,6 +72,17 @@ function faults(first) {
     const body = screen.querySelector(".cover-body").getBoundingClientRect();
     if (phone && body.top < letters.bottom - 1) f.push("text overlaps the logo letters");
     if (!phone && body.width < 300) f.push(`text column only ${Math.round(body.width)} px`);
+    // on a computer the logo and the words sit centred as one group: the room left of the logo matches the room right
+    // of the words [measured on the words themselves, not their column]
+    if (!phone) {
+      let right = 0;
+      for (const el of screen.querySelectorAll(".cover-body > *")) {
+        if (!shown(el)) continue;
+        const range = document.createRange(); range.selectNodeContents(el);
+        right = Math.max(right, range.getBoundingClientRect().right);
+      }
+      if (Math.abs(box.left - (vw - right)) > vw * 0.1) f.push(`logo and words off centre ${Math.round(box.left)} | ${Math.round(vw - right)}`);
+    }
     const pick = screen.querySelector(".lang-pick");
     if (pick && shown(pick)) {
       const [a, b] = [...pick.querySelectorAll("button")].map((x) => x.getBoundingClientRect());
@@ -85,6 +96,8 @@ function faults(first) {
     let right = 0;
     for (const el of step.querySelectorAll("*")) { const r = el.getBoundingClientRect(); if (r.width && r.height) right = Math.max(right, r.right); }
     if (lineLeft - right < 4) f.push(`content touches the line: ${Math.round(lineLeft - right)} px`);
+    // a wide window has no empty band between the step and the line [the step splits into question | answers]
+    if (vw >= 1200 && lineLeft - right > vw * 0.12) f.push(`empty band before the line: ${Math.round(lineLeft - right)} px`);
   }
   return f;
 }

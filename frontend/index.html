@@ -26,7 +26,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="fonts/saira-extra-condensed-latin-700-normal.woff2?v=4e78a0c7" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-500-normal.woff2?v=bb2ad530" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=09431740">
+<link rel="stylesheet" href="styles.css?v=52266270">
 <link rel="stylesheet" href="motion.css?v=7b7c42ed">
 <script type="module" src="app.js?v=2469bc44"></script>
 </head>
@@ -57,44 +57,56 @@
     <fieldset id="step1" class="step" data-step="1">
       <legend class="sr" data-t="step1Legend">Kategorija</legend>
       <p class="step-label"><span class="dots" aria-hidden="true"><i class="on now"></i><i></i><i></i></span><span data-t="step1Label">Kategorija</span></p>
-      <h2 class="display" data-t="question">Kurp Tevi aizveda jauns kontakts?</h2>
-      <p class="lead" data-t="lead">…</p>
-      <p class="prize" data-t="prize">…</p>
-      <div class="choices" role="radiogroup" aria-labelledby="choices-title" aria-describedby="err-category">
-        <p class="choices-title" id="choices-title" data-t="pick">Kas tas bija?</p>
-        <div class="choices-list" id="choices"></div>
-        <p class="err" id="err-category" aria-live="polite"></p>
+      <div class="step-q">
+        <h2 class="display" data-t="question">Kurp Tevi aizveda jauns kontakts?</h2>
+        <p class="lead" data-t="lead">…</p>
+        <p class="prize" data-t="prize">…</p>
       </div>
-      <div class="actions"><button type="button" class="btn btn--lime" data-next data-t="next">Tālāk</button></div>
+      <div class="step-a">
+        <div class="choices" role="radiogroup" aria-labelledby="choices-title" aria-describedby="err-category">
+          <p class="choices-title" id="choices-title" data-t="pick">Kas tas bija?</p>
+          <div class="choices-list" id="choices"></div>
+          <p class="err" id="err-category" aria-live="polite"></p>
+        </div>
+        <div class="actions"><button type="button" class="btn btn--lime" data-next data-t="next">Tālāk</button></div>
+      </div>
     </fieldset>
 
     <fieldset id="step2" class="step" data-step="2" hidden>
       <legend class="sr" data-t="step2Legend">Stāsts</legend>
       <p class="step-label"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on now"></i><i></i></span><span data-t="step2Label">Stāsts</span></p>
-      <h2 class="display" data-t="storyTitle">Pastāsti vairāk</h2>
-      <label class="lead" for="story" data-t="storyLead">…</label>
-      <textarea id="story" name="story" rows="8" maxlength="3000" data-t-ph="storyPh" aria-describedby="story-count err-story"></textarea>
-      <p class="count" id="story-count" aria-live="polite">0 / 1500</p>
-      <p class="err" id="err-story" aria-live="polite"></p>
-      <div class="actions"><button type="button" class="btn btn--line btn--square" data-back data-t-aria="back" aria-label="Atpakaļ"></button><button type="button" class="btn btn--lime" data-next data-t="next">Tālāk</button></div>
+      <div class="step-q">
+        <h2 class="display" data-t="storyTitle">Pastāsti vairāk</h2>
+        <label class="lead" for="story" data-t="storyLead">…</label>
+      </div>
+      <div class="step-a">
+        <textarea id="story" name="story" rows="8" maxlength="3000" data-t-ph="storyPh" aria-describedby="story-count err-story"></textarea>
+        <p class="count" id="story-count" aria-live="polite">0 / 1500</p>
+        <p class="err" id="err-story" aria-live="polite"></p>
+        <div class="actions"><button type="button" class="btn btn--line btn--square" data-back data-t-aria="back" aria-label="Atpakaļ"></button><button type="button" class="btn btn--lime" data-next data-t="next">Tālāk</button></div>
+      </div>
     </fieldset>
 
     <fieldset id="step3" class="step" data-step="3" hidden>
       <legend class="sr" data-t="step3Legend">Kontakti</legend>
       <p class="step-label"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on now"></i></span><span data-t="step3Label">Kontakti</span></p>
-      <h2 class="display" data-t="contactTitle">Kur Tevi sameklēt, ja uzvarēsi?</h2>
-      <div class="field"><label for="first" data-t="first">Vārds</label><input id="first" name="first" enterkeyhint="next" autocomplete="given-name" autocapitalize="words" maxlength="80" aria-describedby="err-first"><p class="err" id="err-first" aria-live="polite"></p></div>
-      <div class="field"><label for="last" data-t="last">Uzvārds</label><input id="last" name="last" enterkeyhint="next" autocomplete="family-name" autocapitalize="words" maxlength="80" aria-describedby="err-last"><p class="err" id="err-last" aria-live="polite"></p></div>
-      <div class="field"><label for="email" data-t="email">E-pasts</label><input id="email" name="email" type="email" enterkeyhint="next" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" aria-describedby="err-email"><p class="err" id="err-email" aria-live="polite"></p></div>
-      <div class="field"><label for="phone" data-t="phone">Tālrunis</label><input id="phone" name="phone" type="tel" enterkeyhint="next" inputmode="tel" autocomplete="tel" maxlength="24" data-t-ph="phonePh" aria-describedby="err-phone"><p class="err" id="err-phone" aria-live="polite"></p></div>
-      <div class="field"><label for="company" data-t="company">Uzņēmums [nav obligāti]</label><input id="company" name="company" enterkeyhint="done" autocomplete="organization" maxlength="120" aria-describedby="err-company"><p class="err" id="err-company" aria-live="polite"></p></div>
-      <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
-      <label class="check"><input type="checkbox" id="consent" name="consent" aria-describedby="err-consent"><span class="box" aria-hidden="true"></span><span data-t="consent">…</span></label>
-      <p class="err" id="err-consent" aria-live="polite"></p>
-      <details class="rules"><summary data-t="rulesTitle">Noteikumi un privātums</summary><ul id="rules-list"></ul></details>
-      <label class="check"><input type="checkbox" id="share" name="share"><span class="box" aria-hidden="true"></span><span data-t="share">…</span></label>
-      <p class="sending" id="sending" aria-live="polite"></p>
-      <div class="actions"><button type="button" class="btn btn--line btn--square" data-back data-t-aria="back" aria-label="Atpakaļ"></button><button type="submit" class="btn btn--lime" id="submit" data-t="submit">Piedalīties izlozē</button></div>
+      <div class="step-q">
+        <h2 class="display" data-t="contactTitle">Kur Tevi sameklēt, ja uzvarēsi?</h2>
+      </div>
+      <div class="step-a">
+        <div class="field"><label for="first" data-t="first">Vārds</label><input id="first" name="first" enterkeyhint="next" autocomplete="given-name" autocapitalize="words" maxlength="80" aria-describedby="err-first"><p class="err" id="err-first" aria-live="polite"></p></div>
+        <div class="field"><label for="last" data-t="last">Uzvārds</label><input id="last" name="last" enterkeyhint="next" autocomplete="family-name" autocapitalize="words" maxlength="80" aria-describedby="err-last"><p class="err" id="err-last" aria-live="polite"></p></div>
+        <div class="field"><label for="email" data-t="email">E-pasts</label><input id="email" name="email" type="email" enterkeyhint="next" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" aria-describedby="err-email"><p class="err" id="err-email" aria-live="polite"></p></div>
+        <div class="field"><label for="phone" data-t="phone">Tālrunis</label><input id="phone" name="phone" type="tel" enterkeyhint="next" inputmode="tel" autocomplete="tel" maxlength="24" data-t-ph="phonePh" aria-describedby="err-phone"><p class="err" id="err-phone" aria-live="polite"></p></div>
+        <div class="field"><label for="company" data-t="company">Uzņēmums [nav obligāti]</label><input id="company" name="company" enterkeyhint="done" autocomplete="organization" maxlength="120" aria-describedby="err-company"><p class="err" id="err-company" aria-live="polite"></p></div>
+        <div class="hp" aria-hidden="true"><label for="website">Website</label><input id="website" name="website" tabindex="-1" autocomplete="off"></div>
+        <label class="check"><input type="checkbox" id="consent" name="consent" aria-describedby="err-consent"><span class="box" aria-hidden="true"></span><span data-t="consent">…</span></label>
+        <p class="err" id="err-consent" aria-live="polite"></p>
+        <details class="rules"><summary data-t="rulesTitle">Noteikumi un privātums</summary><ul id="rules-list"></ul></details>
+        <label class="check"><input type="checkbox" id="share" name="share"><span class="box" aria-hidden="true"></span><span data-t="share">…</span></label>
+        <p class="sending" id="sending" aria-live="polite"></p>
+        <div class="actions"><button type="button" class="btn btn--line btn--square" data-back data-t-aria="back" aria-label="Atpakaļ"></button><button type="submit" class="btn btn--lime" id="submit" data-t="submit">Piedalīties izlozē</button></div>
+      </div>
     </fieldset>
 
     <footer class="flow-foot"><span data-t="prizeBy">Balvu nodrošina</span><img src="img/sixt-neg.svg?v=ed9aebff" alt="SIXT" width="72" height="30"></footer>
