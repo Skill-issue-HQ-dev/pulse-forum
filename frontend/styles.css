@@ -27,8 +27,8 @@
   --radius: 10px;
   --field-radius: 6px;
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
-  --line2-left: 54.35%;
-  --line2-w: 6.12%;
+  --line2-left: 53.24%;
+  --line2-w: 7.01%;
   color-scheme: light;
 }
 
@@ -114,8 +114,8 @@ button, input, textarea { font: inherit; color: inherit; }
 .rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; }
 .rail::after { content: ""; position: absolute; top: 100%; left: var(--line2-left); width: var(--line2-w); height: 400vh; background: currentColor; }
 .flow-top { padding-top: max(18px, env(safe-area-inset-top)); min-height: 52px; }
-/* Content clears the rail's LINE (54.35% into the mark, 6.12% wide), not the whole mark: the letters sit above the steps. */
-.step { border: 0; margin: 0; padding: 18px calc(var(--rail-w) * 0.4565 + 14px) 0 0; min-width: 0; max-width: 44rem; }
+/* Content clears the rail's LINE (53.24% into the mark, 7.01% wide), not the whole mark: the letters sit above the steps. */
+.step { border: 0; margin: 0; padding: 18px calc(var(--rail-w) * 0.4676 + 14px) 0 0; min-width: 0; max-width: 44rem; }
 .step .step-label { color: var(--orange); display: flex; align-items: center; }
 .dots { display: inline-flex; gap: 6px; margin-right: 12px; }
 .dots i { width: 11px; height: 11px; box-shadow: inset 0 0 0 2px var(--orange); }

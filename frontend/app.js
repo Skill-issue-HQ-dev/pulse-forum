@@ -6,6 +6,7 @@ import { CATEGORIES, T } from "./strings.js";
 import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js";
 import { API } from "./config.js";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js";
+import { startPulse } from "./pulse.js";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
@@ -95,6 +96,7 @@ function show(screen) {
   $("#done").hidden = screen !== "done";
   document.body.dataset.screen = screen;
   barColour(screen);
+  startPulse($(screen === "flow" ? "#entry" : `#${screen}`));
   window.scrollTo(0, 0);
 }
 
