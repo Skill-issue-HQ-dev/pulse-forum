@@ -23,6 +23,7 @@ fn ids(list: &Value, field: &str) -> Vec<i64> {
 async fn a_draw_picks_one_eligible_entry_and_answers_with_it() {
     let app = app();
     app.fill(10).await;
+    app.set_open(false).await;
     app.admin_post("/api/admin/exclude", &json!({ "id": 4, "excluded": true })).await;
     let r = app.admin_post(DRAW, &json!({})).await;
     assert_eq!(r.status, StatusCode::OK);
@@ -45,6 +46,7 @@ async fn a_draw_picks_one_eligible_entry_and_answers_with_it() {
 async fn winners_never_repeat_and_the_draw_ends_with_409_empty() {
     let app = app();
     app.fill(6).await;
+    app.set_open(false).await;
     app.admin_post("/api/admin/exclude", &json!({ "id": 2, "excluded": true })).await;
     let mut winners = BTreeSet::new();
     for (round, pool) in [(1, 5), (2, 4), (3, 3), (4, 2), (5, 1)] {
@@ -65,6 +67,7 @@ async fn an_excluded_entry_never_wins_whatever_the_dice_say() {
     for _ in 0..15 {
         let app = app();
         app.fill(5).await;
+        app.set_open(false).await;
         for id in 1..=4 {
             app.admin_post("/api/admin/exclude", &json!({ "id": id, "excluded": true })).await;
         }
@@ -80,6 +83,7 @@ async fn the_real_randomness_reaches_every_entry() {
     for _ in 0..60 {
         let app = app();
         app.fill(3).await;
+        app.set_open(false).await;
         seen.insert(app.admin_post(DRAW, &json!({})).await.json()["winner"]["id"].as_i64().unwrap());
     }
     assert_eq!(seen, BTreeSet::from([1, 2, 3]));
@@ -88,9 +92,12 @@ async fn the_real_randomness_reaches_every_entry() {
 #[tokio::test]
 async fn nobody_eligible_is_409_empty_and_writes_nothing() {
     let app = app();
+    app.set_open(false).await;
     let r = app.admin_post(DRAW, &json!({})).await;
     assert_eq!((r.status, r.json()), (StatusCode::CONFLICT, refusal("empty")), "no entries at all");
+    app.set_open(true).await;
     app.fill(2).await;
+    app.set_open(false).await;
     for id in [1, 2] {
         app.admin_post("/api/admin/exclude", &json!({ "id": id, "excluded": true })).await;
     }
@@ -101,12 +108,14 @@ async fn nobody_eligible_is_409_empty_and_writes_nothing() {
 }
 
 #[tokio::test]
-async fn a_draw_works_open_or_closed_and_wants_a_json_object() {
+async fn a_draw_waits_for_closed_entries_and_wants_a_json_object() {
     let app = app();
     app.fill(3).await;
-    assert_eq!(app.admin_post(DRAW, &json!({})).await.status, StatusCode::OK, "open");
+    let r = app.admin_post(DRAW, &json!({})).await;
+    assert_eq!((r.status, r.json()), (StatusCode::CONFLICT, refusal("open")), "open: nobody still to come is left out");
     app.set_open(false).await;
     assert_eq!(app.admin_post(DRAW, &json!({})).await.status, StatusCode::OK, "closed");
+    assert_eq!(app.admin_post(DRAW, &json!({})).await.status, StatusCode::OK, "closed again");
     assert_eq!(app.admin_post(DRAW, &json!({ "note": "ignored" })).await.status, StatusCode::OK, "extra fields are ignored");
     for body in ["", "not json", "[]", "null", "42", "\"x\"", "{"] {
         let r = app.admin_raw("POST", DRAW, Some(KEY), body).await;
@@ -119,6 +128,7 @@ async fn a_draw_works_open_or_closed_and_wants_a_json_object() {
 async fn parallel_draws_pick_distinct_winners_with_distinct_numbers() {
     let app = app();
     app.fill(12).await;
+    app.set_open(false).await;
     let bearer = format!("Bearer {KEY}");
     let tasks: Vec<_> = (0..12)
         .map(|_| {
@@ -186,7 +196,9 @@ async fn parallel_resends_of_one_entry_are_one_new_and_the_rest_retry() {
 async fn clear_refuses_while_entries_are_open_and_deletes_nothing() {
     let app = app();
     app.fill(3).await;
+    app.set_open(false).await;
     app.admin_post(DRAW, &json!({})).await;
+    app.set_open(true).await;
     let r = app.admin_post(CLEAR, &json!({ "confirm": "DZĒST" })).await;
     assert_eq!((r.status, r.json()), (StatusCode::CONFLICT, refusal("open")));
     let list = app.list().await;
@@ -213,9 +225,9 @@ async fn clear_needs_the_exact_word() {
 async fn clear_with_the_word_on_closed_entries_deletes_every_entry_and_draw() {
     let app = app();
     app.fill(4).await;
-    app.admin_post(DRAW, &json!({})).await;
-    app.admin_post(DRAW, &json!({})).await;
     app.set_open(false).await;
+    app.admin_post(DRAW, &json!({})).await;
+    app.admin_post(DRAW, &json!({})).await;
     let r = app.admin_post(CLEAR, &json!({ "confirm": "DZĒST" })).await;
     assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true, "deleted": 4 })));
     assert_eq!(app.list().await, json!({ "ok": true, "open": false, "count": 0, "eligible": 0, "entries": [], "draws": [] }), "closed stays closed");
@@ -224,6 +236,7 @@ async fn clear_with_the_word_on_closed_entries_deletes_every_entry_and_draw() {
     // A new round starts clean: entry 1 and draw 1 again.
     app.set_open(true).await;
     app.fill(2).await;
+    app.set_open(false).await;
     let j = app.admin_post(DRAW, &json!({})).await.json();
     assert_eq!(j["draw"]["n"], 1);
     assert_eq!(ids(&app.list().await, "won").len(), 1);

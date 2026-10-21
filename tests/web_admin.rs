@@ -28,11 +28,12 @@ fn sheet(xlsx: &[u8], n: u32) -> String {
 /// One request to try: its path, its headers, and the status it must get.
 type Case<'a> = (&'a str, Vec<(&'a str, &'a str)>, StatusCode);
 
-const ROUTES: [(&str, &str); 6] = [
+const ROUTES: [(&str, &str); 7] = [
     ("GET", "/api/admin/entries"),
     ("GET", "/api/admin/export.xlsx"),
     ("POST", "/api/admin/open"),
     ("POST", "/api/admin/exclude"),
+    ("POST", "/api/admin/delete"),
     ("POST", "/api/admin/draw"),
     ("POST", "/api/admin/clear"),
 ];
@@ -91,6 +92,7 @@ async fn the_entries_json_has_the_contracts_shape() {
     let app = app();
     app.fill(3).await;
     app.admin_post("/api/admin/exclude", &json!({ "id": 2, "excluded": true })).await;
+    app.set_open(false).await;
     let drawn = app.admin_post("/api/admin/draw", &json!({})).await.json();
     let (n, winner_id) = (drawn["draw"]["n"].as_i64().unwrap(), drawn["draw"]["winner_id"].as_i64().unwrap());
     let r = app.admin_get("/api/admin/entries").await;
@@ -98,20 +100,22 @@ async fn the_entries_json_has_the_contracts_shape() {
     assert!(r.header("content-type").starts_with("application/json"));
     let j = r.json();
     assert_eq!(keys(&j), names(&["ok", "open", "count", "eligible", "entries", "draws"]));
-    assert_eq!((j["ok"].as_bool(), j["open"].as_bool(), j["count"].as_i64(), j["eligible"].as_i64()), (Some(true), Some(true), Some(3), Some(1)));
+    assert_eq!((j["ok"].as_bool(), j["open"].as_bool(), j["count"].as_i64(), j["eligible"].as_i64()), (Some(true), Some(false), Some(3), Some(1)));
     let entries = j["entries"].as_array().unwrap();
     assert_eq!(entries.iter().map(|e| e["id"].as_i64().unwrap()).collect::<Vec<_>>(), [1, 2, 3], "submission order");
     for e in entries {
-        assert_eq!(keys(e), names(&["id", "at", "lang", "category", "story", "first", "last", "email", "phone", "company", "share", "excluded", "won"]));
+        assert_eq!(keys(e), names(&["id", "at", "lang", "category", "story", "first", "last", "email", "phone", "company", "share", "excluded", "won", "dup_of"]));
         assert!(e["share"].is_boolean() && e["excluded"].is_boolean() && e["id"].is_i64() && e["at"].as_str().unwrap().ends_with('Z'));
-        assert_eq!((e["lang"].as_str(), e["category"].as_str(), e["phone"].as_str()), (Some("lv"), Some("new_contact"), Some("+371 20 000 000")));
+        let phone = format!("+371 2{:07}", e["id"].as_i64().unwrap());
+        assert_eq!((e["lang"].as_str(), e["category"].as_str(), e["phone"].as_str()), (Some("lv"), Some("new_contact"), Some(phone.as_str())));
+        assert_eq!(e["dup_of"], Value::Null, "every phone differs");
         let want_won = if e["id"] == winner_id { json!(n) } else { Value::Null };
         assert_eq!(e["won"], want_won, "won is the draw number for the winner, null for everyone else");
     }
     assert_eq!(entries[1]["excluded"], true);
     let draws = j["draws"].as_array().unwrap();
     assert_eq!(draws.len(), 1);
-    assert_eq!(keys(&draws[0]), names(&["n", "at", "pool", "winner_id"]));
+    assert_eq!(keys(&draws[0]), names(&["n", "at", "pool", "winner_id", "pool_ids"]));
     assert_eq!((draws[0]["n"].as_i64(), draws[0]["pool"].as_i64(), draws[0]["winner_id"].as_i64()), (Some(1), Some(2), Some(winner_id)));
     assert_ne!(winner_id, 2, "an excluded entry cannot win");
 }
@@ -127,6 +131,7 @@ async fn an_empty_list_is_still_a_list() {
 async fn the_export_is_a_three_sheet_workbook_download() {
     let app = app();
     app.fill(3).await;
+    app.set_open(false).await;
     app.admin_post("/api/admin/draw", &json!({})).await;
     let r = app.admin_get("/api/admin/export.xlsx").await;
     assert_eq!(r.status, StatusCode::OK);
@@ -139,9 +144,9 @@ async fn the_export_is_a_three_sheet_workbook_download() {
     assert!(r.body.starts_with(b"PK"));
     assert_eq!(sheet(&r.body, 1).matches("<row ").count(), 4, "header + 3 entries");
     assert_eq!(sheet(&r.body, 2).matches("<row ").count(), 2, "header + 1 draw");
-    assert!(sheet(&r.body, 3).contains("<t>Atvērta</t>"));
-    app.set_open(false).await;
-    assert!(sheet(&app.admin_get("/api/admin/export.xlsx").await.body, 3).contains("<t>Slēgta</t>"));
+    assert!(sheet(&r.body, 3).contains("<t>Slēgta</t>"));
+    app.set_open(true).await;
+    assert!(sheet(&app.admin_get("/api/admin/export.xlsx").await.body, 3).contains("<t>Atvērta</t>"));
 }
 
 #[tokio::test]
@@ -230,4 +235,31 @@ fn the_admin_key_must_hold_at_least_32_characters() {
         assert!(err.contains("PULSE_ADMIN_KEY") && err.contains("32"), "{err}");
         assert!(short.is_empty() || !err.contains(short), "the message never shows the key");
     }
+}
+
+#[tokio::test]
+async fn delete_removes_one_entry_but_never_a_drawn_winner() {
+    let app = app();
+    app.fill(3).await;
+    app.set_open(false).await;
+    let winner = app.admin_post("/api/admin/draw", &json!({})).await.json()["draw"]["winner_id"].as_i64().unwrap();
+    let other = if winner == 1 { 2 } else { 1 };
+    let r = app.admin_post("/api/admin/delete", &json!({ "id": winner })).await;
+    assert_eq!((r.status, r.json()["error"].as_str()), (StatusCode::CONFLICT, Some("winner")));
+    let r = app.admin_post("/api/admin/delete", &json!({ "id": other })).await;
+    assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true, "deleted": other })));
+    assert_eq!(app.admin_post("/api/admin/delete", &json!({ "id": other })).await.status, StatusCode::NOT_FOUND);
+    assert_eq!(app.list().await["count"], 2);
+    assert_eq!(app.admin_raw("POST", "/api/admin/delete", None, r#"{"id":3}"#).await.status, StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn a_draw_waits_until_entries_are_closed() {
+    let app = app();
+    app.fill(2).await;
+    let r = app.admin_post("/api/admin/draw", &json!({})).await;
+    assert_eq!((r.status, r.json()["error"].as_str()), (StatusCode::CONFLICT, Some("open")));
+    assert_eq!(app.list().await["draws"], json!([]));
+    app.set_open(false).await;
+    assert_eq!(app.admin_post("/api/admin/draw", &json!({})).await.status, StatusCode::OK);
 }

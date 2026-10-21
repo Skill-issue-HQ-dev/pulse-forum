@@ -1,12 +1,12 @@
-//! The organiser's calls, all behind the admin key: the list, the Excel export, open/close, exclude, draw, clear.
-//! Owns the HTTP side of the six routes and the bearer gate; the data work lives in io::store and core::workbook.
+//! The organiser's calls, all behind the admin key: the list, the Excel export, open/close, exclude, delete, draw,
+//! clear. Owns the HTTP side of the seven routes and the bearer gate; the data work lives in io::store and core::workbook.
 //! Invariant: no route here answers without a valid `Authorization: Bearer <key>`, and no answer may be cached.
 
 use super::{db, reply, Shared};
 use crate::config;
 use crate::core::auth;
 use crate::core::workbook::{self, Facts};
-use crate::io::store::{self, Cleared, Drawn};
+use crate::io::store::{self, Cleared, Deleted, Drawn};
 use crate::io::{clock, random};
 use axum::body::Bytes;
 use axum::extract::rejection::BytesRejection;
@@ -26,6 +26,7 @@ pub fn routes(state: Shared) -> Router<Shared> {
         .route("/export.xlsx", get(export))
         .route("/open", post(open))
         .route("/exclude", post(exclude))
+        .route("/delete", post(delete))
         .route("/draw", post(draw))
         .route("/clear", post(clear))
         .layer(middleware::from_fn_with_state(state, require_key))
@@ -122,7 +123,33 @@ async fn exclude(State(s): State<Shared>, body: Result<Bytes, BytesRejection>) -
     }
 }
 
-/// `POST /draw {}`: one winner, uniformly among the eligible entries, from operating-system randomness.
+#[derive(Deserialize)]
+struct DeleteInput {
+    id: i64,
+}
+
+/// `POST /delete {"id":N}`: deletes one entry at its owner's request; a drawn winner stays.
+async fn delete(State(s): State<Shared>, body: Result<Bytes, BytesRejection>) -> Response {
+    let input: DeleteInput = match reply::parse(body) {
+        Ok(input) => input,
+        Err(refusal) => return *refusal,
+    };
+    match store::delete(&mut db(&s), input.id) {
+        Ok(Deleted::Gone) => {
+            println!("admin: entry {} deleted", input.id);
+            reply::ok(json!({ "ok": true, "deleted": input.id }))
+        }
+        Ok(Deleted::Missing) => reply::refuse(StatusCode::NOT_FOUND, "id"),
+        Ok(Deleted::Winner) => {
+            println!("admin: delete refused (entry {} won a draw)", input.id);
+            reply::refuse(StatusCode::CONFLICT, "winner")
+        }
+        Err(e) => reply::fail(&e),
+    }
+}
+
+/// `POST /draw {}`: one winner, uniformly among the eligible entries, from operating-system randomness; only
+/// once entries are closed, so nobody still to come is left out.
 async fn draw(State(s): State<Shared>, body: Result<Bytes, BytesRejection>) -> Response {
     if let Err(refusal) = reply::parse::<Map<String, Value>>(body) {
         return *refusal;
@@ -135,6 +162,10 @@ async fn draw(State(s): State<Shared>, body: Result<Bytes, BytesRejection>) -> R
         Ok(Drawn::Empty) => {
             println!("admin: draw refused (nobody eligible)");
             reply::refuse(StatusCode::CONFLICT, "empty")
+        }
+        Ok(Drawn::StillOpen) => {
+            println!("admin: draw refused (entries are open)");
+            reply::refuse(StatusCode::CONFLICT, "open")
         }
         Err(e) => reply::fail(&e),
     }

@@ -59,6 +59,11 @@ server parses the bytes as JSON whatever the content type.
     `missing` (first, last, e-mail or phone empty), `too_long`, `email`, `phone`, `consent`. First failing rule
     wins, checked in that order.
   - 423 `{"ok":false,"error":"closed"}`: entries are closed (checked after the honeypot, before the rules).
+    Exception: a valid entry whose token is already stored gets 200 `retry`, so a phone whose answer was lost
+    near the close still hears it is in the draw.
+  - Same phone: an entry whose phone ends in the same 8 digits as an earlier entry's is stored as `new` like any
+    other, but starts excluded with `dup_of` = that earlier entry's id [one person, one chance]; the organisers
+    can put it back with `exclude`.
   - 500 `{"ok":false,"error":"server"}`.
 
 ## Admin
@@ -70,22 +75,26 @@ Every admin call carries `Authorization: Bearer <PULSE_ADMIN_KEY>`, compared in 
   ```json
   {"ok":true,"open":true,"count":12,"eligible":10,
    "entries":[{"id":1,"at":"…","lang":"lv","category":"new_contact","story":"…","first":"…","last":"…",
-               "email":"…","phone":"…","company":"","share":false,"excluded":false,"won":null}],
-   "draws":[{"n":1,"at":"…","pool":10,"winner_id":5}]}
+               "email":"…","phone":"…","company":"","share":false,"excluded":false,"won":null,"dup_of":null}],
+   "draws":[{"n":1,"at":"…","pool":10,"winner_id":5,"pool_ids":[1,2,4]}]}
   ```
-  Entries in submission order; `won` is the draw number that picked this entry, else null; `eligible` = not
-  excluded and never drawn.
+  Entries in submission order; `won` is the draw number that picked this entry, else null; `dup_of` is the
+  earlier entry with the same phone, else null; `eligible` = not excluded and never drawn; `pool_ids` = every
+  entry the draw drew from.
 - `GET /api/admin/export.xlsx` -> 200 workbook,
   `content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`,
   `content-disposition: attachment; filename="PULSE izloze YYYY-MM-DD HH-MM.xlsx"` (Riga wall clock, ASCII).
   Sheets: `Stāsti` (one row per entry: Nr., Iesniegts Rīgas laikā, Valoda, Kategorija [Latvian label], Stāsts,
   Vārds, Uzvārds, E-pasts, Tālrunis, Uzņēmums, Drīkst publicēt stāstu [JĀ/NĒ], Izslēgts no izlozes [JĀ/NĒ],
-  Uzvarētājs izlozē Nr.), `Izlozes` (Nr., Laiks Rīgā, Dalībnieku skaits izlozē, Uzvarētājs [entry Nr. +
-  name]), `Eksports` (when, how many entries, open or closed). Phone stays text.
+  Uzvarētājs izlozē Nr., Tas pats tālrunis kā Nr.), `Izlozes` (Nr., Laiks Rīgā, Dalībnieku skaits izlozē,
+  Uzvarētājs [entry Nr. + name], Izlozē piedalījās Nr.), `Eksports` (when, how many entries, open or closed). Phone stays text.
 - `POST /api/admin/open` `{"open":false}` -> `{"ok":true,"open":false}`.
 - `POST /api/admin/exclude` `{"id":5,"excluded":true}` -> `{"ok":true}`; 404 `{"ok":false,"error":"id"}`.
-- `POST /api/admin/draw` `{}` -> 200 `{"ok":true,"draw":{"n":1,"at":"…","pool":10,"winner_id":5},"winner":{entry}}`;
-  409 `{"ok":false,"error":"empty"}` when nobody is eligible. Uniform pick over the eligible entries with
+- `POST /api/admin/delete` `{"id":5}` -> `{"ok":true,"deleted":5}` deletes one entry at its owner's request;
+  404 `{"ok":false,"error":"id"}`; 409 `{"ok":false,"error":"winner"}` for an entry a draw picked.
+- `POST /api/admin/draw` `{}` -> 200 `{"ok":true,"draw":{"n":1,…,"pool_ids":[…]},"winner":{entry}}`;
+  409 `{"ok":false,"error":"open"}` while entries are open [nobody still to come is left out]; 409
+  `{"ok":false,"error":"empty"}` when nobody is eligible. Uniform pick over the eligible entries with
   operating-system randomness (rejection sampling, no modulo bias); the draw row and the pick are one
   transaction.
 - `POST /api/admin/clear` `{"confirm":"DZĒST"}` -> `{"ok":true,"deleted":N}` deletes every entry and draw;

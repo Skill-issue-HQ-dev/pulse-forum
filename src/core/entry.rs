@@ -37,6 +37,8 @@ pub struct Entry {
     pub email: String,
     pub email_key: String,
     pub phone: String,
+    /// The phone's last digits: a second entry with the same key is the same person under another e-mail.
+    pub phone_key: String,
     pub company: String,
     pub share: bool,
 }
@@ -59,6 +61,7 @@ pub fn check(input: EntryInput) -> Check {
         return Check::Bot;
     }
     let email = text(input.email);
+    let phone = text(input.phone);
     let entry = Entry {
         token: text(input.token),
         lang: text(input.lang),
@@ -68,7 +71,8 @@ pub fn check(input: EntryInput) -> Check {
         last: text(input.last),
         email_key: email_key(&email),
         email,
-        phone: text(input.phone),
+        phone_key: phone_key(&phone),
+        phone,
         company: text(input.company),
         share: input.share.unwrap_or(false),
     };
@@ -138,6 +142,13 @@ fn length_rule(e: &Entry) -> Result<(), &'static str> {
 /// The key that keeps one entry per person: the e-mail, trimmed and lower-cased.
 pub fn email_key(email: &str) -> String {
     email.trim().to_lowercase()
+}
+
+/// The key that spots one person entering twice under two e-mails: the phone's last eight digits, so a
+/// Latvian number gives the same key with or without +371 and with any spacing.
+pub fn phone_key(phone: &str) -> String {
+    let digits: Vec<char> = phone.chars().filter(char::is_ascii_digit).collect();
+    digits[digits.len().saturating_sub(config::PHONE_KEY_DIGITS)..].iter().collect()
 }
 
 /// One @, something before it, and a dot in the domain (not first) with two characters or more behind it.

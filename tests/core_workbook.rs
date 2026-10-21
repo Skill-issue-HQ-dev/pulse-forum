@@ -43,6 +43,7 @@ fn row(id: i64, first: &str) -> Row {
         share: true,
         excluded: false,
         won: None,
+        dup_of: None,
     }
 }
 
@@ -80,17 +81,18 @@ fn the_stories_sheet_has_the_contracts_columns_and_one_row_per_entry() {
     rows[2].share = false;
     rows[2].lang = "en".into();
     rows[2].category = "trip".into();
+    rows[2].dup_of = Some(1);
     let bytes = build(&rows, &[], &facts(true)).unwrap();
     let s1 = part(&bytes, "xl/worksheets/sheet1.xml");
     assert_eq!(s1.matches("<row ").count(), 4, "header + 3 entries");
-    assert_eq!(STORY_HEADERS.len(), 13);
+    assert_eq!(STORY_HEADERS.len(), 14);
     for (i, h) in STORY_HEADERS.iter().enumerate() {
         let at = format!("{}1", char::from(b'A' + i as u8));
         assert!(cell(&s1, &at).contains(&format!("<t>{h}</t>")), "{at} is {h}");
     }
     assert_eq!(
         STORY_HEADERS,
-        ["Nr.", "Iesniegts Rīgas laikā", "Valoda", "Kategorija", "Stāsts", "Vārds", "Uzvārds", "E-pasts", "Tālrunis", "Uzņēmums", "Drīkst publicēt stāstu", "Izslēgts no izlozes", "Uzvarētājs izlozē Nr."]
+        ["Nr.", "Iesniegts Rīgas laikā", "Valoda", "Kategorija", "Stāsts", "Vārds", "Uzvārds", "E-pasts", "Tālrunis", "Uzņēmums", "Drīkst publicēt stāstu", "Izslēgts no izlozes", "Uzvarētājs izlozē Nr.", "Tas pats tālrunis kā Nr."]
     );
     // Entry 1: number, language, the Latvian category label, the names, JĀ/NĒ, no draw number.
     assert!(cell(&s1, "A2").contains("<v>1</v>"));
@@ -102,6 +104,8 @@ fn the_stories_sheet_has_the_contracts_columns_and_one_row_per_entry() {
     assert!(cell(&s1, "M3").contains("<v>1</v>"));
     assert!(cell(&s1, "C4").contains("<t>EN</t>") && cell(&s1, "D4").contains("<t>Ceļojums</t>"));
     assert!(cell(&s1, "K4").contains("<t>NĒ</t>") && cell(&s1, "L4").contains("<t>JĀ</t>"));
+    // Entry 3 has entry 1's phone; the others have no such link.
+    assert!(cell(&s1, "N4").contains("<v>1</v>") && !has_cell(&s1, "N2"));
 }
 
 #[test]
@@ -171,13 +175,13 @@ fn the_draws_sheet_names_each_winner_by_entry_number_and_name() {
     let mut rows = vec![row(1, "Testa"), row(2, "Ābele"), row(3, "Zaķis")];
     rows[1].won = Some(1);
     let draws = vec![
-        Draw { n: 1, at: "2026-10-28T10:30:00Z".into(), pool: 3, winner_id: 2 },
-        Draw { n: 2, at: "2026-10-28T10:31:00Z".into(), pool: 2, winner_id: 9 },
+        Draw { n: 1, at: "2026-10-28T10:30:00Z".into(), pool: 3, winner_id: 2, pool_ids: vec![1, 2, 3] },
+        Draw { n: 2, at: "2026-10-28T10:31:00Z".into(), pool: 2, winner_id: 9, pool_ids: vec![3, 9] },
     ];
     let bytes = build(&rows, &draws, &facts(false)).unwrap();
     let s2 = part(&bytes, "xl/worksheets/sheet2.xml");
     assert_eq!(s2.matches("<row ").count(), 3, "header + 2 draws");
-    assert_eq!(DRAW_HEADERS, ["Nr.", "Laiks Rīgā", "Dalībnieku skaits izlozē", "Uzvarētājs"]);
+    assert_eq!(DRAW_HEADERS, ["Nr.", "Laiks Rīgā", "Dalībnieku skaits izlozē", "Uzvarētājs", "Izlozē piedalījās Nr."]);
     for (i, h) in DRAW_HEADERS.iter().enumerate() {
         let at = format!("{}1", char::from(b'A' + i as u8));
         assert!(cell(&s2, &at).contains(&format!("<t>{h}</t>")), "{at} is {h}");
@@ -186,6 +190,7 @@ fn the_draws_sheet_names_each_winner_by_entry_number_and_name() {
     assert!(cell(&s2, "B2").contains("<v>46323.520833</v>"), "10:30Z is 12:30 Riga");
     assert!(cell(&s2, "D2").contains("<t>Nr. 2: Ābele Ķirsis</t>"));
     assert!(cell(&s2, "D3").contains("<t>Nr. 9</t>"), "a winner no longer in the list still shows its number");
+    assert!(cell(&s2, "E2").contains("<t>1, 2, 3</t>") && cell(&s2, "E3").contains("<t>3, 9</t>"), "each draw keeps its pool");
 }
 
 #[test]

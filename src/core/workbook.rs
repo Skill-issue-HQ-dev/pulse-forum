@@ -11,7 +11,7 @@ pub const STORIES_SHEET: &str = "Stāsti";
 pub const DRAWS_SHEET: &str = "Izlozes";
 pub const EXPORT_SHEET: &str = "Eksports";
 
-pub const STORY_HEADERS: [&str; 13] = [
+pub const STORY_HEADERS: [&str; 14] = [
     "Nr.",
     "Iesniegts Rīgas laikā",
     "Valoda",
@@ -25,11 +25,12 @@ pub const STORY_HEADERS: [&str; 13] = [
     "Drīkst publicēt stāstu",
     "Izslēgts no izlozes",
     "Uzvarētājs izlozē Nr.",
+    "Tas pats tālrunis kā Nr.",
 ];
-pub const DRAW_HEADERS: [&str; 4] = ["Nr.", "Laiks Rīgā", "Dalībnieku skaits izlozē", "Uzvarētājs"];
+pub const DRAW_HEADERS: [&str; 5] = ["Nr.", "Laiks Rīgā", "Dalībnieku skaits izlozē", "Uzvarētājs", "Izlozē piedalījās Nr."];
 
-const STORY_WIDTHS: [u8; 13] = [6, 20, 9, 24, 70, 16, 18, 30, 18, 24, 16, 16, 14];
-const DRAW_WIDTHS: [u8; 4] = [6, 20, 24, 40];
+const STORY_WIDTHS: [u8; 14] = [6, 20, 9, 24, 70, 16, 18, 30, 18, 24, 16, 16, 14, 14];
+const DRAW_WIDTHS: [u8; 5] = [6, 20, 24, 40, 60];
 const EXPORT_WIDTHS: [u8; 2] = [28, 20];
 
 /// What the `Eksports` sheet says besides the data: when the file was made and whether entries are open.
@@ -77,6 +78,7 @@ fn story_row(r: &Row) -> Vec<Cell> {
         Cell::text(yes_no(r.share), xlsx::TOP),
         Cell::text(yes_no(r.excluded), xlsx::TOP),
         r.won.map_or(Cell::Empty, |n| Cell::Num(n as f64, xlsx::TOP)),
+        r.dup_of.map_or(Cell::Empty, |n| Cell::Num(n as f64, xlsx::TOP)),
     ]
 }
 
@@ -92,6 +94,7 @@ fn draw_row(rows: &[Row], d: &Draw) -> Vec<Cell> {
         Cell::date(riga::excel_serial(&d.at)),
         Cell::Num(d.pool as f64, xlsx::TOP),
         Cell::text(winner_label(rows, d), xlsx::TOP),
+        Cell::text(d.pool_ids.iter().map(i64::to_string).collect::<Vec<_>>().join(", "), xlsx::WRAP),
     ]
 }
 

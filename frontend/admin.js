@@ -61,7 +61,8 @@ function render(d) {
   $("#state").textContent = d.open ? "Atvērta" : "Slēgta";
   $("#toggle").textContent = d.open ? "Slēgt pieteikšanos" : "Atvērt pieteikšanos";
   $("#clear").disabled = d.open;
-  $("#draw").disabled = d.eligible === 0;
+  $("#draw").disabled = d.open || d.eligible === 0;
+  $("#draw-note").hidden = !d.open;
   renderCats(d.entries);
   renderDraws(d);
   renderEntries(d.entries);
@@ -90,6 +91,7 @@ function entryRow(e) {
   const head = el("p", "entry-head");
   head.append(el("span", "entry-no", `Nr. ${e.id}`), el("span", "", riga(e.at)), el("span", "tag", LABELS[e.category] || e.category), el("span", "tag", e.lang.toUpperCase()));
   if (e.won) head.append(el("span", "tag tag--won", `Uzvarētājs, izloze Nr. ${e.won}`));
+  if (e.dup_of) head.append(el("span", "tag tag--twin", `Tas pats tālrunis kā Nr. ${e.dup_of}`));
   const name = el("p", "entry-name", `${e.first} ${e.last}${e.company ? `, ${e.company}` : ""}`);
   const contact = el("p", "entry-contact", `${e.phone} / ${e.email}`);
   const story = el("p", "entry-story", e.story);
@@ -97,7 +99,15 @@ function entryRow(e) {
   const toggle = el("button", "btn btn--line btn--small", e.excluded ? "Iekļaut izlozē" : "Izslēgt no izlozes");
   toggle.type = "button";
   toggle.addEventListener("click", () => exclude(e.id, !e.excluded));
-  li.append(head, name, contact, story, flags, toggle);
+  const actions = el("p", "entry-actions");
+  actions.append(toggle);
+  if (!e.won) {
+    const drop = el("button", "btn btn--line btn--small", "Dzēst");
+    drop.type = "button";
+    drop.addEventListener("click", () => remove(e.id));
+    actions.append(drop);
+  }
+  li.append(head, name, contact, story, flags, actions);
   return li;
 }
 
@@ -111,7 +121,7 @@ function showWinner(w, dr) {
   $("#winner-label").textContent = `Uzvarētājs, izloze Nr. ${dr.n}`;
   $("#winner-name").textContent = `${w.first} ${w.last}`;
   Object.assign($("#winner-phone"), { textContent: w.phone, href: `tel:${w.phone.replace(/[^+\d]/g, "")}` });
-  Object.assign($("#winner-email"), { textContent: w.email, href: `mailto:${w.email}` });
+  Object.assign($("#winner-email"), { textContent: w.email, href: `mailto:${encodeURIComponent(w.email)}` });
   $("#winner-company").textContent = w.company || "";
   $("#winner-story").textContent = w.story;
   $("#winner-meta").textContent = `${LABELS[w.category] || w.category}. Izlozēts ${riga(dr.at)} no ${dr.pool} dalībniekiem.`;
@@ -131,7 +141,7 @@ function draw() {
   return act(async () => {
     const res = await call("draw", {});
     const json = await res.json();
-    if (res.status === 409) throw new Error("Izlozē neviens nepiedalās.");
+    if (res.status === 409) throw new Error(json.error === "open" ? "Vispirms slēdz pieteikšanos." : "Izlozē neviens nepiedalās.");
     if (!json.ok) throw new Error("Izloze neizdevās.");
     say(`Uzvarētājs izlozēts: ${json.winner.first} ${json.winner.last}.`);
   });
@@ -147,6 +157,16 @@ function exclude(id, excluded) {
   return act(async () => {
     const res = await call("exclude", { id, excluded });
     if (!res.ok) throw new Error("Neizdevās mainīt ierakstu.");
+  });
+}
+
+function remove(id) {
+  if (!confirm(`Dzēst stāstu Nr. ${id}? To vairs nevarēs atjaunot.`)) return;
+  return act(async () => {
+    const res = await call("delete", { id });
+    if (res.status === 409) throw new Error("Uzvarētāja ierakstu dzēst nevar.");
+    if (!res.ok) throw new Error("Neizdevās dzēst ierakstu.");
+    say(`Stāsts Nr. ${id} izdzēsts.`);
   });
 }
 

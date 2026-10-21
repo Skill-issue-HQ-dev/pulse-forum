@@ -241,3 +241,26 @@ async fn a_database_failure_is_a_plain_500_that_leaks_nothing() {
     assert_eq!(app.get("/healthz").await.status, StatusCode::OK, "the service stays up");
     let _ = KEY;
 }
+
+#[tokio::test]
+async fn a_resend_after_closing_still_hears_it_is_in() {
+    // The answer got lost near the close: the phone resends the stored entry and must not read "closed".
+    let app = app();
+    assert_eq!(app.entry(&valid_entry(1)).await.json()["status"], "new");
+    app.set_open(false).await;
+    let r = app.entry(&valid_entry(1)).await;
+    assert_eq!((r.status, r.json()["status"].as_str()), (StatusCode::OK, Some("retry")));
+    assert_eq!(app.entry(&valid_entry(2)).await.status, StatusCode::LOCKED, "a new entry is still refused");
+    assert_eq!(stored(&app).len(), 1);
+}
+
+#[tokio::test]
+async fn the_same_phone_under_another_email_is_stored_but_out_of_the_draw() {
+    let app = app();
+    app.entry(&valid_entry(1)).await;
+    let mut twin = valid_entry(2);
+    twin["phone"] = valid_entry(1)["phone"].clone();
+    assert_eq!(app.entry(&twin).await.json()["status"], "new", "the guest hears the usual answer");
+    let list = app.list().await;
+    assert_eq!((list["entries"][1]["excluded"].as_bool(), list["entries"][1]["dup_of"].as_i64(), list["eligible"].as_i64()), (Some(true), Some(1), Some(1)));
+}

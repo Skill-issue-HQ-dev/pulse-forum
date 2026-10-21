@@ -91,12 +91,13 @@ function updateCount() {
 }
 
 function show(screen) {
+  const fresh = document.body.dataset.screen !== screen;
   $("#start").hidden = screen !== "start";
   $("#entry").hidden = screen !== "flow";
   $("#done").hidden = screen !== "done";
   document.body.dataset.screen = screen;
   barColour(screen);
-  startPulse($(screen === "flow" ? "#entry" : `#${screen}`));
+  if (fresh) startPulse($(screen === "flow" ? "#entry" : `#${screen}`));
   window.scrollTo(0, 0);
 }
 
@@ -113,8 +114,26 @@ function goStep(n) {
     }
   }
   show("flow");
+  holdBack();
   $(`#step${n} .display`).setAttribute("tabindex", "-1");
   $(`#step${n} .display`).focus({ preventScroll: true });
+}
+
+/** The phone's Back steps back through the form instead of leaving the page: one history entry while in the flow. */
+function holdBack() {
+  if (!history.state || !history.state.flow) history.pushState({ flow: true }, "");
+}
+
+function onBack() {
+  if ($("#entry").hidden) return;
+  if (state.sending) return holdBack();
+  if (state.step > 1) {
+    goStep(state.step - 1);
+  } else {
+    show("start");
+    clearTimeout(state.live);
+    checkOpen();
+  }
 }
 
 /** Marks the step's errors; on a miss, shakes what needs fixing and buzzes once. */
@@ -176,6 +195,8 @@ function payload(v, token) {
 
 function sendingUi(on, key) {
   state.sending = on;
+  // While an answer is on its way its words are fixed: a resend carries the stored copy, so editing would mislead.
+  for (const field of $$("#entry input, #entry textarea, #entry [data-back]")) field.disabled = on;
   const button = $("#submit");
   button.disabled = on;
   button.dataset.t = on && key ? "retry" : "submit";
@@ -296,6 +317,7 @@ function wire() {
   $("#lang-switch").addEventListener("click", () => setLang(state.lang === "lv" ? "en" : "lv"));
   for (const b of $$("[data-next]")) b.addEventListener("click", () => { if (checkStep(state.step)) goStep(state.step + 1); });
   for (const b of $$("[data-back]")) b.addEventListener("click", () => goStep(state.step - 1));
+  window.addEventListener("popstate", onBack);
   $("#entry").addEventListener("submit", submit);
   $("#entry").addEventListener("input", (e) => {
     if (e.target.id === "story") updateCount();

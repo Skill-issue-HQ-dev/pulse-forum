@@ -9,15 +9,16 @@ const TAIL = Array.from({ length: 12 }, (_, k) => (1 - k / 12) ** 2);
 /** Layer j covers the first j+1 steps; these opacities stack up to TAIL without seams between the steps. */
 const LAYERS = TAIL.map((a, k) => (k === TAIL.length - 1 ? a : 1 - (1 - a) / (1 - TAIL[k + 1])));
 
-/** Path in the mark's own units [starts above the mark, ends below it], its length, and how each mark beats. */
+/** Path in the mark's own units [starts above the mark, ends below it], its length, and how each mark beats:
+ *  `beats` rounds, then the line rests, so a phone left on the form is not kept busy. */
 const KINDS = {
   hero: {
     d: "M343.46 -150V563.39H380.83V1000", len: 1187.37, core: 20, seg: 12,
-    halo: [[44, 0.16], [68, 0.09], [96, 0.05]], travel: 1.7, period: 4.6, begin: 1.25, echo: 0.32,
+    halo: [[44, 0.16], [68, 0.09], [96, 0.05]], travel: 1.7, period: 4.6, begin: 1.25, echo: 0.32, beats: 10,
   },
   rail: {
     d: "M343.46 100V563.39H380.83V9100", len: 9037.37, core: 30, seg: 48,
-    halo: [[70, 0.2], [110, 0.11], [150, 0.05]], travel: 2.8, period: 5.6, begin: 1.6, echo: 0.45,
+    halo: [[70, 0.2], [110, 0.11], [150, 0.05]], travel: 2.8, period: 5.6, begin: 1.6, echo: 0.45, beats: 12,
   },
 };
 
@@ -38,7 +39,7 @@ function moving(kind, at, { length, width, opacity, ahead = 0, cap = "butt" }) {
   path.append(el("animate", {
     attributeName: "stroke-dashoffset", values: `${from};${to};${to}`,
     keyTimes: `0;${(kind.travel / kind.period).toFixed(4)};1`, calcMode: "spline",
-    keySplines: "0.45 0 0.25 1;0 0 1 1", dur: `${kind.period}s`, begin: `${at.toFixed(2)}s`, repeatCount: "indefinite",
+    keySplines: "0.45 0 0.25 1;0 0 1 1", dur: `${kind.period}s`, begin: `${at.toFixed(2)}s`, repeatCount: kind.beats,
   }));
   return path;
 }

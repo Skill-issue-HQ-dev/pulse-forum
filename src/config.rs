@@ -27,6 +27,8 @@ pub const STORY_MAX_CHARS: usize = 1500;
 pub const NAME_MAX_CHARS: usize = 80;
 pub const EMAIL_MAX_CHARS: usize = 120;
 pub const COMPANY_MAX_CHARS: usize = 120;
+/// One person, one chance: entries whose phones end in the same this-many digits count as one person.
+pub const PHONE_KEY_DIGITS: usize = 8;
 /// The contract gives the phone a digit range only; this cap on its characters (a phone error) keeps a novel out.
 pub const PHONE_MAX_CHARS: usize = 40;
 pub const PHONE_MIN_DIGITS: usize = 7;

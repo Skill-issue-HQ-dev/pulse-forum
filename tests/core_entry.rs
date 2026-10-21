@@ -1,7 +1,7 @@
 //! Tests for core::entry: every 422 code and their order, trimming, characters (not bytes), the honeypot,
 //! the e-mail key, and the e-mail, phone and token rules.
 
-use pulse_forum::core::entry::{check, email_key, email_ok, phone_ok, token_ok, Check, EntryInput};
+use pulse_forum::core::entry::{Check, EntryInput, check, email_key, email_ok, phone_key, phone_ok, token_ok};
 use serde_json::{json, Value};
 
 const TOKEN: &str = "0123456789abcdef0123456789abcdef";
@@ -225,4 +225,12 @@ fn the_token_rule() {
     for bad in [TOKEN.to_uppercase(), TOKEN[1..].to_string(), format!("{TOKEN}0"), "g".repeat(32), String::new(), format!("é{}", &TOKEN[2..])] {
         assert!(!token_ok(&bad), "{bad:?}");
     }
+}
+
+#[test]
+fn the_phone_key_is_the_last_eight_digits() {
+    assert_eq!(phone_key("+371 20 000 001"), "20000001");
+    assert_eq!(phone_key("2000-0001"), "20000001", "same number without the country code");
+    assert_eq!(phone_key("+44 20 7946 0958"), "79460958");
+    assert_eq!(phone_key("123 4567"), "1234567", "a short number keeps all its digits");
 }

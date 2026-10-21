@@ -43,6 +43,9 @@
 .entry-no { color: var(--orange); }
 .tag { color: var(--lime); }
 .tag--won { color: var(--coal); background: var(--lime); padding: 0 6px; }
+.tag--twin { color: var(--coal); background: var(--orange); padding: 0 6px; }
+.draw-note { margin: 12px 0 0; color: var(--lime); }
+.entry-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .entry-name { margin: 8px 0 0; font: 700 24px/1.1 var(--body); }
 .entry-contact { margin: 4px 0 0; font-size: 18px; overflow-wrap: anywhere; }
 .entry-story { margin: 10px 0 0; max-width: 42em; white-space: pre-wrap; }

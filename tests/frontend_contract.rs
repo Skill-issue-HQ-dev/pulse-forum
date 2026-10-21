@@ -81,6 +81,6 @@ fn no_other_host_appears_in_the_site() {
 fn the_pages_allow_connections_to_the_collector_host_only() {
     for page in ["frontend/index.html", "frontend/admin.html"] {
         let html = fs::read_to_string(page).expect(page);
-        assert!(html.contains(&format!("connect-src {HOST};")), "{page}: CSP connect-src must be {HOST} only");
+        assert!(html.contains(&format!("connect-src {API}/;")), "{page}: CSP connect-src must be the collector's path {API}/ only");
     }
 }

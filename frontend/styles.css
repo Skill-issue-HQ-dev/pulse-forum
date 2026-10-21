@@ -48,7 +48,8 @@ button, input, textarea { font: inherit; color: inherit; }
 [hidden] { display: none !important; }
 .sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+/* Not rendered at all, so no browser or password manager fills it in; only bots reading the markup do. */
+.hp { display: none; }
 :focus-visible { outline: 3px solid var(--lime); outline-offset: 3px; }
 .screen--lime :focus-visible { outline-color: var(--coal); }
 

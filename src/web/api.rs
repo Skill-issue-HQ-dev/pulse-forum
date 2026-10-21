@@ -40,6 +40,7 @@ pub async fn entry(State(s): State<Shared>, body: Result<Bytes, BytesRejection>)
         Err(e) => return reply::fail(&e),
     };
     match verdict {
+        Check::Valid(entry) if !open => closed(&conn, &entry.token),
         _ if !open => {
             println!("entry: refused (closed)");
             reply::refuse(StatusCode::LOCKED, "closed")
@@ -50,6 +51,21 @@ pub async fn entry(State(s): State<Shared>, body: Result<Bytes, BytesRejection>)
         }
         Check::Valid(entry) => store_entry(&conn, &entry),
         Check::Bot => reply::status("new"),
+    }
+}
+
+/// Closed: a phone resending an entry that is already stored [its answer got lost] still hears it is in the draw.
+fn closed(conn: &Connection, token: &str) -> Response {
+    match store::has_token(conn, token) {
+        Ok(true) => {
+            println!("entry: retry after closing (token already stored)");
+            reply::status("retry")
+        }
+        Ok(false) => {
+            println!("entry: refused (closed)");
+            reply::refuse(StatusCode::LOCKED, "closed")
+        }
+        Err(e) => reply::fail(&e),
     }
 }
 
@@ -66,6 +82,11 @@ fn store_entry(conn: &Connection, entry: &Entry) -> Response {
         Ok(Inserted::Taken) => {
             println!("entry: taken (e-mail already in, first entry kept)");
             reply::status("taken")
+        }
+        Ok(Inserted::SamePhone(first)) => {
+            // The guest hears "new" like anyone else; the organisers see the link and can put the entry back.
+            println!("entry: new, same phone as entry {first}: kept out of the draw");
+            reply::status("new")
         }
         Err(e) => reply::fail(&e),
     }

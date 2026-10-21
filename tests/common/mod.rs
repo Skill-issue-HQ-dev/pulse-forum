@@ -129,7 +129,7 @@ impl App {
     }
 }
 
-/// A valid entry body; `n` makes its token and e-mail unique.
+/// A valid entry body; `n` makes its token, e-mail and phone unique.
 pub fn valid_entry(n: u32) -> Value {
     json!({
         "token": format!("{n:032x}"),
@@ -139,7 +139,7 @@ pub fn valid_entry(n: u32) -> Value {
         "first": "Testa",
         "last": "Ķirsis",
         "email": format!("test{n}@example.com"),
-        "phone": "+371 20 000 000",
+        "phone": format!("+371 2{n:07}"),
         "company": "Parauga SIA",
         "consent": true,
         "share": false,

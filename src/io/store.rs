@@ -1,7 +1,8 @@
 //! The entries database: one SQLite file holding entries, draws and the open flag.
-//! Owns the schema and every read and write: insert, list, exclude, draw, clear, open/closed.
-//! Invariant: token and e-mail are UNIQUE (the first entry per e-mail wins, a later one never changes it); a draw's
-//! pick and its row are one transaction that skips excluded entries and earlier winners.
+//! Owns the schema and every read and write: insert, list, exclude, delete, draw, clear, open/closed.
+//! Invariant: token and e-mail are UNIQUE (the first entry per e-mail wins, a later one never changes it); an entry
+//! whose phone matches an earlier one starts excluded; a draw runs only while closed, and its pick and its row are
+//! one transaction that skips excluded entries and earlier winners.
 
 use crate::config;
 use crate::core::draw::try_pick;
@@ -29,13 +30,16 @@ CREATE TABLE IF NOT EXISTS entries (
     phone TEXT NOT NULL,
     company TEXT NOT NULL,
     share INTEGER NOT NULL,
-    excluded INTEGER NOT NULL DEFAULT 0
+    excluded INTEGER NOT NULL DEFAULT 0,
+    phone_key TEXT NOT NULL DEFAULT '',
+    dup_of INTEGER
 );
 CREATE TABLE IF NOT EXISTS draws (
     n INTEGER PRIMARY KEY,
     at TEXT NOT NULL,
     pool INTEGER NOT NULL,
-    winner_id INTEGER NOT NULL UNIQUE REFERENCES entries(id)
+    winner_id INTEGER NOT NULL UNIQUE REFERENCES entries(id),
+    pool_ids TEXT NOT NULL DEFAULT ''
 );
 CREATE TABLE IF NOT EXISTS settings (
     name TEXT PRIMARY KEY,
@@ -46,7 +50,7 @@ CREATE TABLE IF NOT EXISTS settings (
 const ELIGIBLE: &str = "excluded = 0 AND id NOT IN (SELECT winner_id FROM draws)";
 /// An entry with the number of the draw that picked it (NULL when none did).
 const ROW_SELECT: &str = "SELECT e.id, e.at, e.lang, e.category, e.story, e.first, e.last, e.email, e.phone,
-    e.company, e.share, e.excluded, d.n FROM entries e LEFT JOIN draws d ON d.winner_id = e.id";
+    e.company, e.share, e.excluded, d.n, e.dup_of FROM entries e LEFT JOIN draws d ON d.winner_id = e.id";
 
 /// Opens (and creates on first use) `<dir>/entries.sqlite3`. A new file is private to its owner (mode 0600),
 /// and entries start open: a database with no `open` setting counts as open.
@@ -95,25 +99,38 @@ pub enum Inserted {
     Retry,
     /// This e-mail is already in under another token: the first entry stays as it was.
     Taken,
+    /// A new row, but this entry (its id) has the same phone: the new row starts out of the draw.
+    SamePhone(i64),
 }
 
-/// Stores a checked entry; a known token or e-mail leaves the stored row untouched.
+/// Stores a checked entry; a known token or e-mail leaves the stored row untouched. One statement, so the
+/// same-phone check and the row cannot be split by another insert.
 pub fn insert(conn: &Connection, e: &Entry, now: &str) -> Result<Inserted, String> {
     let changed = conn
         .execute(
-            "INSERT INTO entries (token, email_key, at, lang, category, story, first, last, email, phone, company, share)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12) ON CONFLICT DO NOTHING",
-            params![e.token, e.email_key, now, e.lang, e.category, e.story, e.first, e.last, e.email, e.phone, e.company, e.share],
+            "INSERT INTO entries (token, email_key, at, lang, category, story, first, last, email, phone, company, share,
+                 phone_key, dup_of, excluded)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13,
+                 (SELECT MIN(id) FROM entries WHERE phone_key = ?13 AND ?13 <> ''),
+                 EXISTS (SELECT 1 FROM entries WHERE phone_key = ?13 AND ?13 <> ''))
+             ON CONFLICT DO NOTHING",
+            params![e.token, e.email_key, now, e.lang, e.category, e.story, e.first, e.last, e.email, e.phone, e.company, e.share, e.phone_key],
         )
         .map_err(|err| format!("store: insert: {err}"))?;
     if changed == 1 {
-        return Ok(Inserted::New);
+        let dup_of: Option<i64> = conn
+            .query_row("SELECT dup_of FROM entries WHERE token = ?1", [&e.token], |r| r.get(0))
+            .map_err(|err| format!("store: insert: same-phone lookup: {err}"))?;
+        return Ok(dup_of.map_or(Inserted::New, Inserted::SamePhone));
     }
     // A unique key refused it: the same token is the phone's own resend, anything else another phone's e-mail.
-    let resent: bool = conn
-        .query_row("SELECT EXISTS (SELECT 1 FROM entries WHERE token = ?1)", [&e.token], |r| r.get(0))
-        .map_err(|err| format!("store: insert: token lookup: {err}"))?;
-    Ok(if resent { Inserted::Retry } else { Inserted::Taken })
+    Ok(if has_token(conn, &e.token)? { Inserted::Retry } else { Inserted::Taken })
+}
+
+/// Whether an entry with this token is stored [a resend after a lost answer].
+pub fn has_token(conn: &Connection, token: &str) -> Result<bool, String> {
+    conn.query_row("SELECT EXISTS (SELECT 1 FROM entries WHERE token = ?1)", [token], |r| r.get(0))
+        .map_err(|err| format!("store: token lookup: {err}"))
 }
 
 fn to_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Row> {
@@ -131,6 +148,7 @@ fn to_row(r: &rusqlite::Row<'_>) -> rusqlite::Result<Row> {
         share: r.get(10)?,
         excluded: r.get(11)?,
         won: r.get(12)?,
+        dup_of: r.get(13)?,
     })
 }
 
@@ -149,11 +167,22 @@ pub fn get(conn: &Connection, id: i64) -> Result<Option<Row>, String> {
 
 /// Every draw in order.
 pub fn draws(conn: &Connection) -> Result<Vec<Draw>, String> {
-    let mut stmt = conn.prepare("SELECT n, at, pool, winner_id FROM draws ORDER BY n").map_err(|e| format!("store: draws: {e}"))?;
+    let mut stmt = conn.prepare("SELECT n, at, pool, winner_id, pool_ids FROM draws ORDER BY n").map_err(|e| format!("store: draws: {e}"))?;
     let rows = stmt
-        .query_map([], |r| Ok(Draw { n: r.get(0)?, at: r.get(1)?, pool: r.get(2)?, winner_id: r.get(3)? }))
+        .query_map([], |r| {
+            let ids: String = r.get(4)?;
+            Ok(Draw { n: r.get(0)?, at: r.get(1)?, pool: r.get(2)?, winner_id: r.get(3)?, pool_ids: parse_ids(&ids) })
+        })
         .map_err(|e| format!("store: draws: {e}"))?;
     rows.collect::<Result<Vec<_>, _>>().map_err(|e| format!("store: draws: {e}"))
+}
+
+fn parse_ids(text: &str) -> Vec<i64> {
+    text.split(',').filter_map(|id| id.parse().ok()).collect()
+}
+
+fn join_ids(ids: &[i64]) -> String {
+    ids.iter().map(i64::to_string).collect::<Vec<_>>().join(",")
 }
 
 /// Everything the admin list and the export show, read together.
@@ -184,10 +213,40 @@ pub fn exclude(conn: &Connection, id: i64, excluded: bool) -> Result<bool, Strin
     Ok(changed == 1)
 }
 
+/// The result of deleting one entry.
+#[derive(Debug, PartialEq)]
+pub enum Deleted {
+    Gone,
+    /// No entry has this id.
+    Missing,
+    /// A draw picked this entry: it stays, so the draw keeps its winner.
+    Winner,
+}
+
+/// Deletes one entry at its owner's request [the privacy text promises it]; a drawn winner is refused.
+pub fn delete(conn: &mut Connection, id: i64) -> Result<Deleted, String> {
+    let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(|e| format!("store: delete {id}: begin: {e}"))?;
+    let won: Option<bool> = tx
+        .query_row("SELECT EXISTS (SELECT 1 FROM draws WHERE winner_id = ?1) FROM entries WHERE id = ?1", [id], |r| r.get(0))
+        .optional()
+        .map_err(|e| format!("store: delete {id}: {e}"))?;
+    match won {
+        None => return Ok(Deleted::Missing),
+        Some(true) => return Ok(Deleted::Winner),
+        Some(false) => {}
+    }
+    tx.execute("DELETE FROM entries WHERE id = ?1", [id]).map_err(|e| format!("store: delete {id}: {e}"))?;
+    tx.commit().map_err(|e| format!("store: delete {id}: commit: {e}"))?;
+    checkpoint(conn, "delete");
+    Ok(Deleted::Gone)
+}
+
 /// The result of a draw (one short-lived value per call, so the size gap between the variants costs nothing).
 #[derive(Debug, PartialEq)]
 #[allow(clippy::large_enum_variant)]
 pub enum Drawn {
+    /// Entries are still open: a draw before the close would leave out everyone still to come.
+    StillOpen,
     /// Nobody is eligible: nothing was written.
     Empty,
     Picked { draw: Draw, winner: Row },
@@ -197,6 +256,9 @@ pub enum Drawn {
 /// a failed random read or a failed write leaves no trace. `next` is the source of random words.
 pub fn draw(conn: &mut Connection, now: &str, next: &mut impl FnMut() -> Result<u64, String>) -> Result<Drawn, String> {
     let tx = conn.transaction_with_behavior(TransactionBehavior::Immediate).map_err(|e| format!("store: draw: begin: {e}"))?;
+    if is_open(&tx)? {
+        return Ok(Drawn::StillOpen);
+    }
     let pool = eligible_ids(&tx)?;
     let picked = try_pick(pool.len(), next).map_err(|e| format!("store: draw: {e}"))?;
     let Some(index) = picked else { return Ok(Drawn::Empty) };
@@ -204,9 +266,9 @@ pub fn draw(conn: &mut Connection, now: &str, next: &mut impl FnMut() -> Result<
     let n: i64 = tx
         .query_row("SELECT COALESCE(MAX(n), 0) + 1 FROM draws", [], |r| r.get(0))
         .map_err(|e| format!("store: draw: number: {e}"))?;
-    let record = Draw { n, at: now.to_string(), pool: pool.len() as i64, winner_id };
-    let row = params![record.n, record.at, record.pool, record.winner_id];
-    tx.execute("INSERT INTO draws (n, at, pool, winner_id) VALUES (?1, ?2, ?3, ?4)", row)
+    let record = Draw { n, at: now.to_string(), pool: pool.len() as i64, winner_id, pool_ids: pool.clone() };
+    let row = params![record.n, record.at, record.pool, record.winner_id, join_ids(&pool)];
+    tx.execute("INSERT INTO draws (n, at, pool, winner_id, pool_ids) VALUES (?1, ?2, ?3, ?4, ?5)", row)
         .map_err(|e| format!("store: draw: insert: {e}"))?;
     let winner = get(&tx, winner_id)?.ok_or_else(|| format!("store: draw: winner {winner_id} vanished"))?;
     tx.commit().map_err(|e| format!("store: draw: commit: {e}"))?;
@@ -239,9 +301,13 @@ pub fn clear(conn: &mut Connection) -> Result<Cleared, String> {
     tx.execute("DELETE FROM draws", []).map_err(|e| format!("store: clear: draws: {e}"))?;
     let deleted = tx.execute("DELETE FROM entries", []).map_err(|e| format!("store: clear: entries: {e}"))?;
     tx.commit().map_err(|e| format!("store: clear: commit: {e}"))?;
-    // Fold the write-ahead log back in so the deleted rows do not linger there; failing only leaves them a while longer.
-    if let Err(e) = conn.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(())) {
-        eprintln!("store: clear: checkpoint: {e}");
-    }
+    checkpoint(conn, "clear");
     Ok(Cleared::Deleted(deleted))
+}
+
+/// Folds the write-ahead log back in so deleted rows do not linger there; failing only leaves them a while longer.
+fn checkpoint(conn: &Connection, what: &str) {
+    if let Err(e) = conn.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(())) {
+        eprintln!("store: {what}: checkpoint: {e}");
+    }
 }

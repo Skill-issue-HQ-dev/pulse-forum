@@ -1,8 +1,9 @@
-//! Tests for io::store: first e-mail wins (new/retry/taken), the open flag, exclude, the draw (skips excluded
-//! entries and earlier winners, numbered from 1, one transaction), clear, and a private database file.
+//! Tests for io::store: first e-mail wins (new/retry/taken), one chance per phone, the open flag, exclude, delete,
+//! the draw (only while closed, skips excluded entries and earlier winners, numbered from 1, keeps its pool, one
+//! transaction), clear, and a private database file.
 
 use pulse_forum::core::entry::{check, Check, Entry, EntryInput};
-use pulse_forum::io::store::{self, Cleared, Drawn, Inserted};
+use pulse_forum::io::store::{self, Cleared, Deleted, Drawn, Inserted};
 use rusqlite::Connection;
 use serde_json::json;
 use std::os::unix::fs::PermissionsExt;
@@ -10,9 +11,13 @@ use std::os::unix::fs::PermissionsExt;
 const T0: &str = "2026-10-28T10:00:00Z";
 
 fn entry_with(n: u32, token_of: u32, email: &str, story: &str) -> Entry {
+    entry_full(n, token_of, email, story, &format!("+371 2{n:07}"))
+}
+
+fn entry_full(n: u32, token_of: u32, email: &str, story: &str, phone: &str) -> Entry {
     let v = json!({
         "token": format!("{token_of:032x}"), "lang": "lv", "category": "trip", "story": story,
-        "first": format!("Testa{n}"), "last": "Ķirsis", "email": email, "phone": "+371 20 000 000",
+        "first": format!("Testa{n}"), "last": "Ķirsis", "email": email, "phone": phone,
         "company": "Parauga SIA", "consent": true, "share": n & 1 == 0, "website": ""
     });
     match check(serde_json::from_value::<EntryInput>(v).unwrap()) {
@@ -49,7 +54,7 @@ fn picked(d: Drawn) -> (i64, i64, i64) {
             assert_eq!(winner.won, Some(draw.n), "the winner row already knows its draw number");
             (draw.n, draw.pool, draw.winner_id)
         }
-        Drawn::Empty => panic!("expected a winner"),
+        other => panic!("expected a winner, got {other:?}"),
     }
 }
 
@@ -115,8 +120,8 @@ fn rows_come_back_in_submission_order_exactly_as_stored() {
     let r = &rows[0];
     assert_eq!((r.at.as_str(), r.lang.as_str(), r.category.as_str(), r.story.as_str()), ("2026-10-28T10:00:01Z", "lv", "trip", story));
     assert_eq!((r.first.as_str(), r.last.as_str(), r.email.as_str()), ("Testa2", "Ķirsis", "b@example.com"));
-    assert_eq!((r.phone.as_str(), r.company.as_str()), ("+371 20 000 000", "Parauga SIA"));
-    assert_eq!((r.share, r.excluded, r.won), (true, false, None));
+    assert_eq!((r.phone.as_str(), r.company.as_str()), ("+371 20000002", "Parauga SIA"));
+    assert_eq!((r.share, r.excluded, r.won, r.dup_of), (true, false, None, None));
     assert!(!rows[1].share, "the share flag is kept per entry");
     assert_eq!(store::get(&conn, 2).unwrap().unwrap(), rows[1]);
     assert_eq!(store::get(&conn, 3).unwrap(), None);
@@ -140,6 +145,7 @@ fn the_draw_skips_excluded_entries_and_earlier_winners_and_numbers_from_one() {
     let (_dir, mut conn) = db();
     fill(&conn, 5);
     store::exclude(&conn, 2, true).unwrap();
+    store::set_open(&conn, false).unwrap();
     // Always the first of the pool: 1, then 3, 4, 5 (2 is excluded, earlier winners drop out).
     let drawn: Vec<(i64, i64, i64)> = (0..4).map(|i| picked(store::draw(&mut conn, &format!("2026-10-28T11:0{i}:00Z"), &mut word(0)).unwrap())).collect();
     assert_eq!(drawn, [(1, 4, 1), (2, 3, 3), (3, 2, 4), (4, 1, 5)], "(draw number, pool, winner id)");
@@ -157,6 +163,7 @@ fn the_pick_is_the_sources_index_into_the_eligible_ids() {
     let (_dir, mut conn) = db();
     fill(&conn, 5);
     store::exclude(&conn, 1, true).unwrap();
+    store::set_open(&conn, false).unwrap();
     // Pool [2, 3, 4, 5]: word 3 is index 3, so entry 5; then pool [2, 3, 4]: word 1 is entry 3.
     assert_eq!(picked(store::draw(&mut conn, T0, &mut word(3)).unwrap()), (1, 4, 5));
     assert_eq!(picked(store::draw(&mut conn, T0, &mut word(1)).unwrap()), (2, 3, 3));
@@ -168,6 +175,7 @@ fn the_pick_is_the_sources_index_into_the_eligible_ids() {
 fn a_failing_random_source_leaves_no_trace() {
     let (_dir, mut conn) = db();
     fill(&conn, 3);
+    store::set_open(&conn, false).unwrap();
     let err = store::draw(&mut conn, T0, &mut || Err("urandom is gone".to_string())).unwrap_err();
     assert!(err.starts_with("store: draw:") && err.contains("urandom is gone"), "{err}");
     assert!(store::draws(&conn).unwrap().is_empty());
@@ -183,6 +191,7 @@ fn nobody_eligible_asks_for_no_randomness_and_writes_nothing() {
         calls += 1;
         Ok(0)
     };
+    store::set_open(&conn, false).unwrap();
     assert_eq!(store::draw(&mut conn, T0, &mut source).unwrap(), Drawn::Empty, "no entries at all");
     fill(&conn, 2);
     store::exclude(&conn, 1, true).unwrap();
@@ -196,7 +205,9 @@ fn nobody_eligible_asks_for_no_randomness_and_writes_nothing() {
 fn clear_refuses_while_open_then_deletes_every_entry_and_draw() {
     let (_dir, mut conn) = db();
     fill(&conn, 3);
+    store::set_open(&conn, false).unwrap();
     picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
+    store::set_open(&conn, true).unwrap();
     assert_eq!(store::clear(&mut conn).unwrap(), Cleared::StillOpen);
     assert_eq!((store::list(&conn).unwrap().len(), store::draws(&conn).unwrap().len()), (3, 1), "nothing deleted while open");
     store::set_open(&conn, false).unwrap();
@@ -210,13 +221,14 @@ fn clear_refuses_while_open_then_deletes_every_entry_and_draw() {
 fn after_a_clear_numbering_starts_again_at_one() {
     let (_dir, mut conn) = db();
     fill(&conn, 2);
-    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
-    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
     store::set_open(&conn, false).unwrap();
+    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
+    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
     store::clear(&mut conn).unwrap();
     store::set_open(&conn, true).unwrap();
     fill(&conn, 1);
     assert_eq!(store::list(&conn).unwrap()[0].id, 1);
+    store::set_open(&conn, false).unwrap();
     assert_eq!(picked(store::draw(&mut conn, T0, &mut word(0)).unwrap()), (1, 1, 1));
 }
 
@@ -244,8 +256,80 @@ fn the_eligible_count_is_the_next_draws_pool() {
     fill(&conn, 6);
     store::exclude(&conn, 2, true).unwrap();
     store::exclude(&conn, 3, true).unwrap();
+    store::set_open(&conn, false).unwrap();
     picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
     let snap = store::snapshot(&conn).unwrap();
     assert_eq!((snap.rows.len(), snap.eligible), (6, 3));
     assert_eq!(picked(store::draw(&mut conn, T0, &mut word(0)).unwrap()).1, 3);
+}
+
+#[test]
+fn a_draw_waits_until_entries_are_closed() {
+    let (_dir, mut conn) = db();
+    fill(&conn, 2);
+    assert_eq!(store::draw(&mut conn, T0, &mut word(0)).unwrap(), Drawn::StillOpen);
+    assert!(store::draws(&conn).unwrap().is_empty(), "a refused draw leaves no row");
+    store::set_open(&conn, false).unwrap();
+    assert_eq!(picked(store::draw(&mut conn, T0, &mut word(0)).unwrap()), (1, 2, 1));
+}
+
+#[test]
+fn a_draw_keeps_the_ids_it_drew_from() {
+    let (_dir, mut conn) = db();
+    fill(&conn, 3);
+    store::exclude(&conn, 2, true).unwrap();
+    store::set_open(&conn, false).unwrap();
+    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
+    store::exclude(&conn, 3, true).unwrap();
+    assert_eq!(store::draws(&conn).unwrap()[0].pool_ids, [1, 3], "later exclusions do not rewrite the pool");
+}
+
+#[test]
+fn the_same_phone_under_another_email_starts_out_of_the_draw() {
+    let (_dir, conn) = db();
+    let story = "Satiku jaunu cilvēku pasākumā un mēs runājām.";
+    assert_eq!(store::insert(&conn, &entry_full(1, 1, "a@example.com", story, "+371 20 000 001"), T0).unwrap(), Inserted::New);
+    // The same number without the country code and spaced differently is the same person.
+    assert_eq!(store::insert(&conn, &entry_full(2, 2, "b@example.com", story, "2000-0001"), T0).unwrap(), Inserted::SamePhone(1));
+    assert_eq!(store::insert(&conn, &entry_full(3, 3, "c@example.com", story, "+371 20 000 003"), T0).unwrap(), Inserted::New);
+    // Its own resend is still a retry, not a second copy.
+    assert_eq!(store::insert(&conn, &entry_full(2, 2, "b@example.com", story, "2000-0001"), T0).unwrap(), Inserted::Retry);
+    let rows = store::list(&conn).unwrap();
+    let flags: Vec<(bool, Option<i64>)> = rows.iter().map(|r| (r.excluded, r.dup_of)).collect();
+    assert_eq!(flags, [(false, None), (true, Some(1)), (false, None)]);
+    assert_eq!(store::snapshot(&conn).unwrap().eligible, 2);
+    // The organisers can put it back.
+    store::exclude(&conn, 2, false).unwrap();
+    assert_eq!(store::snapshot(&conn).unwrap().eligible, 3);
+}
+
+#[test]
+fn delete_removes_one_entry_but_never_a_winner() {
+    let (_dir, mut conn) = db();
+    fill(&conn, 3);
+    store::set_open(&conn, false).unwrap();
+    picked(store::draw(&mut conn, T0, &mut word(0)).unwrap());
+    assert_eq!(store::delete(&mut conn, 1).unwrap(), Deleted::Winner);
+    assert_eq!(store::delete(&mut conn, 2).unwrap(), Deleted::Gone);
+    assert_eq!(store::delete(&mut conn, 2).unwrap(), Deleted::Missing);
+    assert_eq!(store::delete(&mut conn, 99).unwrap(), Deleted::Missing);
+    let ids: Vec<i64> = store::list(&conn).unwrap().iter().map(|r| r.id).collect();
+    assert_eq!(ids, [1, 3]);
+}
+
+#[test]
+fn a_deleted_entry_is_gone_from_the_file_and_its_log() {
+    let dir = tempfile::tempdir().unwrap();
+    let marker = "ZQXK-marker-story-that-must-not-survive-a-delete";
+    {
+        let mut conn = store::open(dir.path()).unwrap();
+        store::insert(&conn, &entry_with(1, 1, "keep@example.com", "Satiku jaunu cilvēku pasākumā un mēs runājām."), T0).unwrap();
+        store::insert(&conn, &entry_with(2, 2, "marker-zqxk@example.com", marker), T0).unwrap();
+        assert_eq!(store::delete(&mut conn, 2).unwrap(), Deleted::Gone);
+    }
+    for file in ["entries.sqlite3", "entries.sqlite3-wal"] {
+        let bytes = std::fs::read(dir.path().join(file)).unwrap_or_default();
+        let text = String::from_utf8_lossy(&bytes);
+        assert!(!text.contains(marker) && !text.contains("marker-zqxk"), "{file} still holds the deleted entry");
+    }
 }
