@@ -11,3 +11,22 @@
   [default: close after the break, draw 28.10 evening]; the prize wording; Komu New C webfont files if licensed;
   the LV and EN copy.
 - Open: delete all entries by 30.11.2026.
+
+## 21.10.2026: v0.1.000 LIVE
+
+- Page https://skill-issue-hq-dev.github.io/pulse-forum/ [Pages workflow on main]; collector behind
+  dbautomatizacijas.com/pulse/api, deployed through the private gateway [server in sync]; tag v0.1.000.
+- Live proof: health, version, CORS only for the Pages origin, 401 without the key; one test entry sent from the
+  real page, listed, drawn after closing, then cleared and reopened: 0 entries, 0 draws. Other projects' stores
+  counted before and after: unchanged.
+- Independent review [Opus] fixed in v0.1.000: same phone = one chance [later entry starts excluded, dup_of]; a draw
+  needs entries closed; delete one entry on request [never a winner]; a resend after closing hears retry; draws keep
+  their pool ids; page fields locked while sending; phone Back steps through the form; honeypot not rendered; CSP
+  connect-src = the API path only; the pulse stops after a few beats.
+- Logo: the L-line's step follows pulseforum.co's own hero art [line 2 as thick as line 1, starting above the foot];
+  the letters and line 1 are the brand book's.
+- Sent to nobody from here: the organisers' mail with both links is kept with the event files, forwarded by hand.
+- Still to confirm with the organisers: data controller wording, close and draw time, prize wording, copy, custom
+  link [extra cost] and then the QR for the chosen link [the QR for the GitHub link is ready].
+- After the event: delete every entry by 30.11.2026 [admin page: close, "Dzēst visus datus"]; then retire the admin
+  key and the collector's route [steps in the private gateway's notes].
