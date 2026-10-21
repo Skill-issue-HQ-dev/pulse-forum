@@ -61,3 +61,7 @@
   keeps its size; every size up to 1440 x 900 is unchanged pixel for pixel. Gate rules added: the cover headline at
   least 27% of the logo letters' height; on a computer the step headline at least 7.5% and its text 1.6% of the window
   height; the Latvian walk also at 1920 x 1080 and 2560 x 1440.
+- v0.2.005 [loop round 5]: wraps. The answer button keeps its label on one line on a 320 px phone ["Enter the draw",
+  "Piedalīties izlozē" broke in two]; the prize note, checkbox labels and rules wrap like the lead, never one short
+  word alone on the last line ["only.", "money.", "again.", "[Rīgas robežās]." kept together]. Gate rules added:
+  a button label on one line; no lone short last word in a text block. A walk error now prints 400 characters.

@@ -74,6 +74,8 @@ button, input, textarea { font: inherit; color: inherit; }
   letter-spacing: 0.05em;
 }
 .lead { display: block; margin: 1rem 0 0; max-width: 34em; text-wrap: pretty; }
+/* Every block of text wraps like the lead: never one short word alone on its last line. */
+.prize, .check, .rules li { text-wrap: pretty; }
 
 /* Buttons */
 .btn {
@@ -201,7 +203,9 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
 .sending { margin: 1.375rem 0 0; font-weight: 700; color: var(--lime); max-width: 34rem; }
 .sending:empty { display: none; }
 .actions { display: flex; gap: 0.75rem; margin-top: 1.875rem; max-width: 30rem; }
-.actions .btn--lime { flex: 1; }
+/* The answer button stretches and centres its label, so narrow side padding moves nothing where the label fits and
+   keeps it on one line on a 320 px phone. */
+.actions .btn--lime { flex: 1; padding-inline: 0.5rem; }
 .flow-foot { display: flex; align-items: center; gap: 0.75rem; margin-top: 2.75rem; font: 700 0.9375rem/1.2 var(--body); }
 .flow-foot img { height: 1.75rem; width: auto; }
 

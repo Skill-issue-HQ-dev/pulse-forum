@@ -26,26 +26,46 @@ function faults(first) {
     if (r.right > vw + 1 || r.left < -1) f.push(`outside the window: ${el.tagName}#${el.id} ${Math.round(r.left)}..${Math.round(r.right)}`);
     else if (el.scrollWidth > el.clientWidth + 2 && getComputedStyle(el).overflowX !== "visible") f.push(`text spills: ${el.tagName}.${el.className}`);
   }
-  // headline words never break inside a word
-  for (const el of screen.querySelectorAll(".display")) {
-    if (!shown(el)) continue;
+  // a button's label stays on one line
+  for (const b of screen.querySelectorAll(".btn")) {
+    if (!shown(b) || !b.textContent.trim()) continue;
+    const range = document.createRange(); range.selectNodeContents(b);
+    if (new Set([...range.getClientRects()].map((x) => Math.round(x.top))).size > 1) f.push(`button label wraps: "${b.textContent.trim()}"`);
+  }
+  /** Each word of a plain-text element with the top of its line [a word over two lines counts as broken]. */
+  const words = (el) => {
     const node = el.firstChild;
-    if (!node || node.nodeType !== 3) continue;
-    const text = node.textContent;
+    if (!node || node.nodeType !== 3 || el.childNodes.length !== 1) return [];
     let at = 0;
-    const tops = [];
-    for (const word of text.split(" ")) {
+    const out = [];
+    for (const word of node.textContent.split(" ")) {
       const range = document.createRange();
       range.setStart(node, at); range.setEnd(node, at + word.length);
-      const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
-      if (word && lines.size > 1) f.push(`word broken across lines: "${word}"`);
-      if (word) tops.push([word, Math.min(...lines)]);
+      const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+      if (word) out.push({ word, top: Math.min(...tops), broken: tops.size > 1 });
       at += word.length + 1;
     }
-    // a headline over several lines never ends with one short word alone [a widow such as "DRAW!" or "YOU?"]
-    const lastTop = Math.max(...tops.map(([, t]) => t));
-    const last = tops.filter(([, t]) => Math.abs(t - lastTop) < 3).map(([w]) => w);
-    if (new Set(tops.map(([, t]) => t)).size > 1 && last.length === 1 && last[0].length <= 6) f.push(`headline ends with a lone word: "${last[0]}"`);
+    return out;
+  };
+  /** The short word left alone on the last line of a text over several lines [a widow such as "DRAW!" or "only."]. */
+  const widow = (ws) => {
+    const tops = new Set(ws.map((w) => w.top));
+    const last = ws.filter((w) => Math.abs(w.top - Math.max(...tops)) < 3);
+    return tops.size > 1 && last.length === 1 && last[0].word.length <= 6 ? last[0].word : null;
+  };
+  // headline words never break inside a word, and a headline never ends with one short word alone
+  for (const el of screen.querySelectorAll(".display")) {
+    if (!shown(el)) continue;
+    const ws = words(el);
+    for (const w of ws) if (w.broken) f.push(`word broken across lines: "${w.word}"`);
+    const lone = widow(ws);
+    if (lone) f.push(`headline ends with a lone word: "${lone}"`);
+  }
+  // nor does a block of text [lead, prize note, checkbox label]
+  for (const el of screen.querySelectorAll(".lead, .prize, .check > span:last-child, .rules li")) {
+    if (!shown(el)) continue;
+    const lone = widow(words(el));
+    if (lone) f.push(`text ends with a lone word: "${lone}"`);
   }
   // the line spans the screen, top edge to bottom edge
   const svg = screen.querySelector("svg[data-pulse]");
@@ -143,7 +163,7 @@ for (const [name, type] of [["chromium", chromium], ["webkit", webkit]]) {
     await mock(p);
     await p.goto(`${base}/index.html`);
     await p.waitForTimeout(1700);
-    try { await walk(p, `${name} ${w}x${h}`, name === "chromium" && SHOT.has(`${w}x${h}`)); } catch (e) { note(`${name} ${w}x${h} walk`, [String(e).slice(0, 160)]); }
+    try { await walk(p, `${name} ${w}x${h}`, name === "chromium" && SHOT.has(`${w}x${h}`)); } catch (e) { note(`${name} ${w}x${h} walk`, [String(e).replace(/\s+/g, " ").slice(0, 400)]); }
     await ctx.close();
     if (!LV.has(`${w}x${h}`)) continue;
     // the Latvian flow has longer words: walk it too on the sizes where wraps are tightest
@@ -152,7 +172,7 @@ for (const [name, type] of [["chromium", chromium], ["webkit", webkit]]) {
     await mock(q);
     await q.goto(`${base}/index.html`);
     await q.waitForTimeout(1700);
-    try { await walk(q, `${name} ${w}x${h} lv`, name === "chromium" && SHOT.has(`${w}x${h}`), "lv"); } catch (e) { note(`${name} ${w}x${h} lv walk`, [String(e).slice(0, 160)]); }
+    try { await walk(q, `${name} ${w}x${h} lv`, name === "chromium" && SHOT.has(`${w}x${h}`), "lv"); } catch (e) { note(`${name} ${w}x${h} lv walk`, [String(e).replace(/\s+/g, " ").slice(0, 400)]); }
     await lv.close();
   }
   if (ONLY.length) { await browser.close(); continue; }
