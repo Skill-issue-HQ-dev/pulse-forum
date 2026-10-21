@@ -24,23 +24,12 @@
 .live:not([hidden]) { animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
 
-/* The pulse: an orange glint runs down the line, through the L, and on down the rail */
-.mk-glint { animation: 4.6s 1.5s linear infinite both; }
-.mk-g1 { animation-name: glint-down; }
-.mk-g2 { animation-name: glint-on; }
-@keyframes glint-down { 0% { transform: translateY(0); } 30%, 100% { transform: translateY(712px); } }
-@keyframes glint-on { 0%, 27% { transform: translateY(0); } 45%, 100% { transform: translateY(375px); } }
-
-.rail-glint {
-  position: absolute; top: 100%; left: var(--line2-left); width: var(--line2-w); height: 90px;
-  background: linear-gradient(to bottom, transparent, var(--orange), transparent);
-  opacity: 0; animation: rail-glint 4.6s 0.9s linear infinite;
-}
-@keyframes rail-glint {
-  0% { transform: translateY(-90px); opacity: 1; }
-  40% { transform: translateY(100vh); opacity: 1; }
-  41%, 100% { transform: translateY(100vh); opacity: 0; }
-}
+/* The pulse: one orange signal flows along the logo's line, down, right along the L's foot and down again,
+   as a single dash on one path (cover: the big mark; rail: the small mark and its long line) */
+.mark--hero .mk-pulse { stroke-dashoffset: 140; animation: pulse-hero 4.8s 1.5s linear infinite; }
+@keyframes pulse-hero { 0% { stroke-dashoffset: 140; } 46%, 100% { stroke-dashoffset: -1030; } }
+.mark--rail .mk-pulse { stroke-dashoffset: 700; animation: pulse-rail 5.2s 0.8s linear infinite; }
+@keyframes pulse-rail { 0% { stroke-dashoffset: 700; } 55%, 100% { stroke-dashoffset: -9050; } }
 
 /* Steps slide in from the side they come from */
 .step.enter-fwd { animation: step-fwd 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -79,5 +68,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .rail-glint, .mk-glint, .confetti { display: none; }
+  .mk-pulse, .confetti { display: none; }
 }

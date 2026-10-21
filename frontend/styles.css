@@ -111,7 +111,7 @@ button, input, textarea { font: inherit; color: inherit; }
   padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(36px, calc(env(safe-area-inset-bottom) + 20px)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }
-.rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; margin-top: calc(var(--rail-w) * -0.36); }
+.rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; }
 .rail::after { content: ""; position: absolute; top: 100%; left: var(--line2-left); width: var(--line2-w); height: 400vh; background: currentColor; }
 .flow-top { padding-top: max(18px, env(safe-area-inset-top)); min-height: 52px; }
 /* Content clears the rail's LINE (54.35% into the mark, 6.12% wide), not the whole mark: the letters sit above the steps. */
