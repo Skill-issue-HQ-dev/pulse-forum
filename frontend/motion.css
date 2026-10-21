@@ -1,0 +1,83 @@
+/* Every animation of the guest page: the PULSE mark drawing itself in, the orange pulse that runs down the
+   logo's line, step changes, progress squares, small answers to taps, and square confetti on the thank-you screen.
+   Invariant: transform and opacity only, and prefers-reduced-motion turns all of it off. */
+
+/* Cover screens: the mark draws in, then the words rise */
+.mark--hero .mk-line, .mark--hero .mk-letter { transform-box: fill-box; }
+.mark--hero .mk-l1 { transform-origin: 50% 0; animation: draw 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.mark--hero .mk-letter { animation: letter-in 0.55s 0.28s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.mark--hero .mk-letter:nth-child(2) { animation-delay: 0.35s; }
+.mark--hero .mk-letter:nth-child(3) { animation-delay: 0.42s; }
+.mark--hero .mk-letter:nth-child(4) { animation-delay: 0.49s; }
+.mark--hero .mk-letter:nth-child(5) { animation-delay: 0.56s; }
+.mark--hero .mk-l2 { transform-origin: 50% 0; animation: draw 0.45s 0.62s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+@keyframes draw { from { transform: scaleY(0); } }
+@keyframes letter-in { from { opacity: 0; transform: translateY(34px); } }
+
+.cover-body > * { animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cover-body > :nth-child(1) { animation-delay: 0.62s; }
+.cover-body > :nth-child(2) { animation-delay: 0.7s; }
+.cover-body > :nth-child(3) { animation-delay: 0.78s; }
+.cover-body > :nth-child(4) { animation-delay: 0.86s; }
+.cover-body > :nth-child(5) { animation-delay: 0.94s; }
+.cover-body > :nth-child(6) { animation-delay: 1.02s; }
+.live:not([hidden]) { animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
+
+/* The pulse: an orange glint runs down the line, through the L, and on down the rail */
+.mk-glint { animation: 4.6s 1.5s linear infinite both; }
+.mk-g1 { animation-name: glint-down; }
+.mk-g2 { animation-name: glint-on; }
+@keyframes glint-down { 0% { transform: translateY(0); } 30%, 100% { transform: translateY(712px); } }
+@keyframes glint-on { 0%, 27% { transform: translateY(0); } 45%, 100% { transform: translateY(375px); } }
+
+.rail-glint {
+  position: absolute; top: 100%; left: var(--line2-left); width: var(--line2-w); height: 90px;
+  background: linear-gradient(to bottom, transparent, var(--orange), transparent);
+  opacity: 0; animation: rail-glint 4.6s 0.9s linear infinite;
+}
+@keyframes rail-glint {
+  0% { transform: translateY(-90px); opacity: 1; }
+  40% { transform: translateY(100vh); opacity: 1; }
+  41%, 100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* Steps slide in from the side they come from */
+.step.enter-fwd { animation: step-fwd 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.step.enter-back { animation: step-back 0.26s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+@keyframes step-fwd { from { opacity: 0; transform: translateX(28px); } }
+@keyframes step-back { from { opacity: 0; transform: translateX(-28px); } }
+.dots i.now { animation: dot-pop 0.4s 0.15s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes dot-pop { from { transform: scale(0.2); } }
+
+/* Answers to a tap */
+.btn { transition: transform 0.08s ease-out, filter 0.15s; }
+.btn:active:not(:disabled) { transform: scale(0.97); }
+@media (hover: hover) { .btn--lime:hover, .btn--coal:hover { filter: brightness(1.07); } }
+.choice { transition: color 0.15s; }
+.choice input:checked + .sq { animation: sq-pop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
+.check input:checked + .box { animation: sq-pop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
+@keyframes sq-pop { from { transform: scale(0.5); } }
+.shake { animation: shake 0.36s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+
+/* Sending: an orange bar sweeps along the button until the collector answers */
+.btn.is-sending { position: relative; overflow: hidden; }
+.btn.is-sending::after {
+  content: ""; position: absolute; left: 0; bottom: 0; width: 40%; height: 4px;
+  background: var(--orange); animation: sweep 0.9s linear infinite;
+}
+@keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
+
+/* Thank you: square confetti in the brand's colours, once */
+.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+.cf {
+  position: absolute; top: -24px; left: var(--x); width: var(--s); height: var(--s); background: var(--c);
+  animation: fall var(--t) var(--d) cubic-bezier(0.25, 0.6, 0.45, 1) both;
+}
+@keyframes fall { to { transform: translate3d(var(--dx), 112vh, 0) rotate(var(--r)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rail-glint, .mk-glint, .confetti { display: none; }
+}

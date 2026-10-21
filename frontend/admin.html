@@ -1,0 +1,66 @@
+<!doctype html>
+<!-- PULSE Forum 2026 story draw: the organisers' page (entries, Excel, open/close, draw, delete).
+     Owns the admin markup; admin.js fills it from the collector with the key from the private link.
+     Invariant: no third-party request ever leaves this page, so the key in the link goes nowhere else. -->
+<html lang="lv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://dbautomatizacijas.com; img-src 'self' data: blob:; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<title>PULSE x SIXT izloze: organizatoriem</title>
+<link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="admin.css">
+<script type="module" src="admin.js"></script>
+</head>
+<body class="admin">
+<main class="admin-main">
+  <header class="admin-head">
+    <p class="step-label">PULSE x SIXT / Tikai organizatoriem</p>
+    <h1 class="display">Izloze: stāsti</h1>
+    <p class="admin-msg" id="msg" role="status" aria-live="polite"></p>
+  </header>
+
+  <section class="panel" id="overview" hidden>
+    <div class="stats">
+      <p><span class="num" id="count">0</span><span>stāsti</span></p>
+      <p><span class="num" id="eligible">0</span><span>piedalās izlozē</span></p>
+      <p><span class="num" id="state">Atvērta</span><span>pieteikšanās</span></p>
+    </div>
+    <ul class="cats" id="cats"></ul>
+    <div class="admin-actions">
+      <button type="button" class="btn btn--lime" id="draw">Izlozēt uzvarētāju</button>
+      <button type="button" class="btn btn--line" id="export">Lejupielādēt Excel</button>
+      <button type="button" class="btn btn--line" id="toggle">Slēgt pieteikšanos</button>
+    </div>
+    <p class="updated" id="updated"></p>
+  </section>
+
+  <section class="panel winner" id="winner" hidden aria-live="polite">
+    <p class="step-label" id="winner-label">Uzvarētājs</p>
+    <h2 class="display" id="winner-name"></h2>
+    <p class="winner-contact"><a id="winner-phone"></a><a id="winner-email"></a><span id="winner-company"></span></p>
+    <p class="winner-story" id="winner-story"></p>
+    <p class="winner-meta" id="winner-meta"></p>
+  </section>
+
+  <section class="panel" id="draws-panel" hidden>
+    <h2 class="panel-title">Izlozes</h2>
+    <ol class="draws" id="draws"></ol>
+  </section>
+
+  <section class="panel" id="entries-panel" hidden>
+    <h2 class="panel-title">Visi stāsti <span class="hint">jaunākie augšā</span></h2>
+    <ol class="entries" id="entries"></ol>
+  </section>
+
+  <section class="panel danger" id="danger" hidden>
+    <h2 class="panel-title">Pēc foruma</h2>
+    <p>Kad uzvarētājs ir zināms un Excel lejupielādēts, izdzēs visus datus. To var izdarīt tikai tad, kad pieteikšanās ir slēgta.</p>
+    <button type="button" class="btn btn--line" id="clear">Dzēst visus datus</button>
+  </section>
+</main>
+</body>
+</html>
