@@ -38,3 +38,5 @@
   text, cut by the text, down the side, two-tone].
 - pulse.js stretches every mark's lower line and its pulse to the bottom of its screen [cover, thank-you, the
   question rail on every step], refit on step changes and resize; the rail's CSS extension is gone.
+- v0.1.002 LIVE: the intro shows the PULSE logo first [the line drawn and the letters up by 0.9 s], then the words,
+  then the pulse.
