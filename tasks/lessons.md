@@ -9,3 +9,5 @@
   in a group that also holds a fill-less rect over the whole viewBox.
 - On a phone the logo's line must reach the bottom of the screen on every screen; a line that ends mid-screen or a
   pulse that stops short reads as broken. Measure the line's end against the screen per step, not only the first.
+- Test layouts as a matrix of window sizes AND live resizing [860-1100 px wide broke the PC cover], and measure
+  geometry after fonts load: one fit at page load goes stale. Refit on ResizeObserver, not window resize.

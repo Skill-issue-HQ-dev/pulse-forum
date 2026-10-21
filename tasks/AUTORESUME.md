@@ -40,3 +40,8 @@
   question rail on every step], refit on step changes and resize; the rail's CSS extension is gone.
 - v0.1.002 LIVE: the intro shows the PULSE logo first [the line drawn and the letters up by 0.9 s], then the words,
   then the pulse.
+- v0.1.003 LIVE: every screen fits its window. Phone: the logo is centred and as wide as the text column; screens are
+  at least 100lvh, so the line reaches the bottom edge whatever the toolbar does. The line spans each screen from the
+  top edge to the bottom and refits on any size change [ResizeObserver]. PC: the logo narrows with the window and the
+  headline scales with its height. Proof: every screen at 17 window sizes plus live resizing, Chromium and WebKit,
+  0 faults [the same check found 26 faulty screens on v0.1.002].
