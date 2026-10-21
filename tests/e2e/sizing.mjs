@@ -80,7 +80,9 @@ async function mock(p) {
   await p.route("**/pulse/api/entry", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"status":"new"}' }));
 }
 async function walk(p, label, shots) {
-  const snap = async (name) => { if (shots) await p.screenshot({ path: `${out}/${label.replace(/ /g, "_")}-${name}.png`, fullPage: true }); };
+  // Screenshots are for the eye: settle every finite animation [intro, draw, confetti] first; the pulse keeps beating.
+  const settle = () => p.evaluate(() => { for (const a of document.getAnimations()) if (a.effect && a.effect.getComputedTiming().iterations !== Infinity) a.finish(); });
+  const snap = async (name) => { if (shots) { await settle(); await p.waitForTimeout(80); await p.screenshot({ path: `${out}/${label.replace(/ /g, "_")}-${name}.png`, fullPage: true }); } };
   note(`${label} cover`, await p.evaluate(faults, true)); await snap("cover");
   await p.click("button[data-lang=en]"); await p.waitForTimeout(450);
   note(`${label} step1`, await p.evaluate(faults, false)); await snap("step1");
