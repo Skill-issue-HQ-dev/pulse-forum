@@ -97,7 +97,7 @@ function show(screen) {
   $("#done").hidden = screen !== "done";
   document.body.dataset.screen = screen;
   barColour(screen);
-  if (fresh) startPulse($(screen === "flow" ? "#entry" : `#${screen}`));
+  if (fresh && screen !== "flow") startPulse($(`#${screen}`));
   window.scrollTo(0, 0);
 }
 
@@ -114,6 +114,7 @@ function goStep(n) {
     }
   }
   show("flow");
+  startPulse($("#entry"));
   holdBack();
   $(`#step${n} .display`).setAttribute("tabindex", "-1");
   $(`#step${n} .display`).focus({ preventScroll: true });
@@ -318,6 +319,11 @@ function wire() {
   for (const b of $$("[data-next]")) b.addEventListener("click", () => { if (checkStep(state.step)) goStep(state.step + 1); });
   for (const b of $$("[data-back]")) b.addEventListener("click", () => goStep(state.step - 1));
   window.addEventListener("popstate", onBack);
+  let refit = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(refit);
+    refit = setTimeout(() => startPulse($(`#${document.body.dataset.screen === "flow" ? "entry" : document.body.dataset.screen}`), { force: false }), 250);
+  });
   $("#entry").addEventListener("submit", submit);
   $("#entry").addEventListener("input", (e) => {
     if (e.target.id === "story") updateCount();

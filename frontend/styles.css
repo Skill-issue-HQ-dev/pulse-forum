@@ -29,6 +29,8 @@
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
   --line2-left: 53.24%;
   --line2-w: 7.01%;
+  /* The cover mark's width on phones: the buttons below part exactly where its line runs. */
+  --mark-w: min(78vw, 360px);
   color-scheme: light;
 }
 
@@ -95,15 +97,22 @@ button, input, textarea { font: inherit; color: inherit; }
 
 /* Lime screens: start and done, the brand book cover in portrait */
 .screen--lime { position: relative; min-height: 100svh; overflow: hidden; background: var(--lime); color: var(--coal); padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 16px)); }
-.cover-mark { width: min(78vw, 360px); margin: calc(min(78vw, 360px) * -0.27) 0 0 var(--gutter); color: var(--white); }
-.cover-mark .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; }
-.cover-body { padding: 18px var(--gutter) 0; max-width: 40rem; }
+.cover-mark { width: var(--mark-w); margin: calc(var(--mark-w) * -0.27) 0 0 var(--gutter); color: var(--white); }
+/* The mark's lower line runs on past the mark to the screen's bottom [pulse.js stretches it]; the text sits over it. */
+.cover-mark .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; overflow: visible; }
+.cover-body { position: relative; z-index: 1; padding: 18px var(--gutter) 0; max-width: 40rem; }
 .lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; max-width: 28rem; }
 .live { display: flex; align-items: center; gap: 14px; margin: 26px 0 0; }
 .live-num { font: 700 46px/1 var(--display); font-variant-numeric: tabular-nums; }
 .live-words { display: flex; flex-direction: column; font: 700 15px/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.04em; }
 .partner { display: flex; align-items: center; gap: 12px; margin: 30px 0 0; font: 700 16px/1.2 var(--body); }
 .partner img { height: 34px; width: auto; }
+/* Phones: the line runs on through the text to the bottom; the language buttons part at the line, and the SIXT logo
+   keeps clear space around it. */
+@media (max-width: 859px) {
+  .lang-pick { grid-template-columns: repeat(2, calc(var(--mark-w) * 0.5324)); column-gap: calc(var(--mark-w) * 0.0701); max-width: none; }
+  .partner img { background: var(--lime); box-shadow: 0 0 0 8px var(--lime); }
+}
 .lead--coal { color: var(--coal); font-size: 21px; }
 
 /* The flow on coal, with the PULSE rail on the right like the brand book pages */
@@ -112,8 +121,7 @@ button, input, textarea { font: inherit; color: inherit; }
   padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(36px, calc(env(safe-area-inset-bottom) + 20px)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }
-.rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; }
-.rail::after { content: ""; position: absolute; top: 100%; left: var(--line2-left); width: var(--line2-w); height: 400vh; background: currentColor; }
+.rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; overflow: visible; }
 .flow-top { padding-top: max(18px, env(safe-area-inset-top)); min-height: 52px; }
 /* Content clears the rail's LINE (53.24% into the mark, 7.01% wide), not the whole mark: the letters sit above the steps. */
 .step { border: 0; margin: 0; padding: 18px calc(var(--rail-w) * 0.4676 + 14px) 0 0; min-width: 0; max-width: 44rem; }

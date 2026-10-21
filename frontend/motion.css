@@ -8,8 +8,6 @@
 .mark--hero .mk-zz { animation: zz-draw 0.95s 0.05s cubic-bezier(0.65, 0, 0.35, 1) both; }
 .mark--rail .mk-zz { animation: zz-draw 1.3s 0.1s cubic-bezier(0.65, 0, 0.35, 1) both; }
 @keyframes zz-draw { from { stroke-dashoffset: 1; } }
-.rail::after { animation: fade-in 0.3s 1.3s ease-out both; }
-@keyframes fade-in { from { opacity: 0; } }
 
 .mark--hero .mk-letter { transform-box: fill-box; animation: letter-in 0.55s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .mark--hero .mk-letter:nth-child(2) { animation-delay: 0.38s; }
