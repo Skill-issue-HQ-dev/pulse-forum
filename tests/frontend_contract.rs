@@ -45,7 +45,7 @@ fn config_names_the_one_collector_address() {
 fn both_pages_take_the_address_from_config() {
     for script in ["frontend/app.js", "frontend/admin.js"] {
         let js = fs::read_to_string(script).expect(script);
-        assert!(js.contains("import { API } from \"./config.js\";"), "{script} must import API from config.js");
+        assert!(js.contains("import { API } from \"./config.js"), "{script} must import API from config.js");
     }
 }
 
@@ -83,4 +83,15 @@ fn the_pages_allow_connections_to_the_collector_host_only() {
         let html = fs::read_to_string(page).expect(page);
         assert!(html.contains(&format!("connect-src {API}/;")), "{page}: CSP connect-src must be the collector's path {API}/ only");
     }
+}
+
+#[test]
+fn every_local_file_is_loaded_with_its_current_stamp() {
+    // A browser that saw an older version must never mix its cached files with new ones: every reference carries
+    // the referenced file's hash. Renew with `cargo run -- stamp frontend` before committing the site.
+    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("frontend");
+    let tree = pulse_forum::io::files::read_tree(&root).expect("frontend");
+    let stamped = pulse_forum::core::stamp::stamp(&tree);
+    let stale: Vec<&String> = tree.keys().filter(|path| stamped.get(*path) != tree.get(*path)).collect();
+    assert!(stale.is_empty(), "stale cache stamps in {stale:?}: run `cargo run -- stamp frontend`");
 }

@@ -2,11 +2,11 @@
 // Owns screens, the draft kept on the phone, and the outbox that resends until the collector answers.
 // Invariant: API is the only address the page calls; "thanks" shows only after the collector stored the entry.
 
-import { CATEGORIES, T } from "./strings.js";
-import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js";
-import { API } from "./config.js";
-import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js";
-import { startPulse, watchMarks } from "./pulse.js";
+import { CATEGORIES, T } from "./strings.js?v=c507e17e";
+import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=69e070c7";
+import { API } from "./config.js?v=e1e99649";
+import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
+import { startPulse, watchMarks } from "./pulse.js?v=d1b5a8f4";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
@@ -345,7 +345,7 @@ function init() {
   buildChoices();
   restoreDraft();
   wire();
-  setLang(store.get(KEYS.lang) || "lv");
+  setLang(store.get(KEYS.lang) || "en");
   if (store.get(KEYS.outbox)) {
     goStep(3);
     flush();

@@ -2,17 +2,17 @@
    Owns tokens, fonts and every screen's layout; colours live only in :root.
    Invariant: text on lime is coal, text on coal is white or lime; the L-line rail never covers content. */
 
-@font-face { font-family: "Saira EC"; font-weight: 700; font-display: swap; src: url("fonts/saira-extra-condensed-latin-700-normal.woff2") format("woff2");
+@font-face { font-family: "Saira EC"; font-weight: 700; font-display: swap; src: url("fonts/saira-extra-condensed-latin-700-normal.woff2?v=4e78a0c7") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Saira EC"; font-weight: 700; font-display: swap; src: url("fonts/saira-extra-condensed-latin-ext-700-normal.woff2") format("woff2");
+@font-face { font-family: "Saira EC"; font-weight: 700; font-display: swap; src: url("fonts/saira-extra-condensed-latin-ext-700-normal.woff2?v=269ff5d0") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-latin-500-normal.woff2") format("woff2");
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-latin-500-normal.woff2?v=bb2ad530") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-latin-ext-500-normal.woff2") format("woff2");
+@font-face { font-family: "Barlow Condensed"; font-weight: 500; font-display: swap; src: url("fonts/barlow-condensed-latin-ext-500-normal.woff2?v=852fa87d") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
-@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-700-normal.woff2") format("woff2");
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-700-normal.woff2?v=ab99e298") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
-@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-ext-700-normal.woff2") format("woff2");
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-ext-700-normal.woff2?v=0d639d6b") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 
 :root {
@@ -112,10 +112,13 @@ button, input, textarea { font: inherit; color: inherit; }
 .live-words { display: flex; flex-direction: column; font: 700 15px/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.04em; }
 .partner { display: flex; align-items: center; gap: 12px; margin: 30px 0 0; font: 700 16px/1.2 var(--body); }
 .partner img { height: 34px; width: auto; }
-/* Phones: the line runs on through the text to the bottom; the language buttons part at the line, and the SIXT logo
+/* Phones: the line runs on through the text to the bottom and behind the two equal language buttons; the SIXT logo
    keeps clear space around it. */
 @media (max-width: 859px) {
-  .lang-pick { grid-template-columns: calc(var(--mark-w) * 0.5324) 1fr; column-gap: calc(var(--mark-w) * 0.0701); max-width: none; }
+  .lang-pick { max-width: none; }
+  /* The words scale with their column [the logo's width], not the window, so a tablet never pushes the buttons down. */
+  .cover-body .display:not(.display--echo) { font-size: max(32px, calc(var(--mark-w) * 0.115)); }
+  .cover-body .display--echo { font-size: max(19px, calc(var(--mark-w) * 0.066)); }
   .partner img { background: var(--lime); box-shadow: 0 0 0 8px var(--lime); }
 }
 .lead--coal { color: var(--coal); font-size: 21px; }

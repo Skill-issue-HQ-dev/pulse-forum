@@ -7,5 +7,6 @@ pub mod entry;
 pub mod labels;
 pub mod record;
 pub mod riga;
+pub mod stamp;
 pub mod workbook;
 pub mod xlsx;

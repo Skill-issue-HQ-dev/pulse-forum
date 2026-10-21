@@ -1,4 +1,5 @@
-//! CLI edge: `pulse-forum serve`, the only command. Reads the environment and starts the service on 127.0.0.1.
+//! CLI edge: `pulse-forum serve` starts the service on 127.0.0.1; `pulse-forum stamp <site>` renews the site's cache
+//! stamps [core::stamp] before a commit.
 //! Owns argument and environment parsing and the exit code; logic lives in core, I/O in io, HTTP in web.
 //! Invariant: no admin key of at least 32 characters means exit 1 with one clear line on stderr (the key is never printed).
 
@@ -7,12 +8,13 @@ use pulse_forum::config;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-const USAGE: &str = "usage: pulse-forum serve";
+const USAGE: &str = "usage: pulse-forum serve | pulse-forum stamp <site folder>";
 
 fn main() -> ExitCode {
     let args: Vec<String> = std::env::args().skip(1).collect();
     let result = match args.as_slice() {
         [command] if command == "serve" => run_serve(),
+        [command, site] if command == "stamp" => run_stamp(site),
         _ => Err(USAGE.to_string()),
     };
     match result {
@@ -22,6 +24,15 @@ fn main() -> ExitCode {
             ExitCode::FAILURE
         }
     }
+}
+
+fn run_stamp(site: &str) -> Result<(), String> {
+    let root = PathBuf::from(site);
+    let before = pulse_forum::io::files::read_tree(&root)?;
+    let after = pulse_forum::core::stamp::stamp(&before);
+    let written = pulse_forum::io::files::write_changed(&root, &before, &after)?;
+    println!("stamp: {written} files rewritten, {} files in {}", before.len(), root.display());
+    Ok(())
 }
 
 fn run_serve() -> Result<(), String> {

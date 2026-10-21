@@ -2,8 +2,8 @@
 // Owns the key handling (link fragment -> this tab only), rendering and the admin calls.
 // Invariant: guest text is only ever set as textContent, and the key never leaves this tab except to API.
 
-import { API } from "./config.js";
-import { CATEGORIES, T } from "./strings.js";
+import { API } from "./config.js?v=e1e99649";
+import { CATEGORIES, T } from "./strings.js?v=c507e17e";
 
 const KEY_STORE = "pulse-admin-key";
 const REFRESH_MS = 20000;
