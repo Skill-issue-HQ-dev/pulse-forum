@@ -29,8 +29,6 @@
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
   --line2-left: 53.24%;
   --line2-w: 7.01%;
-  /* The cover mark's width on phones: the buttons below part exactly where its line runs. */
-  --mark-w: min(78vw, 360px);
   color-scheme: light;
 }
 
@@ -96,11 +94,18 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 
 /* Lime screens: start and done, the brand book cover in portrait */
-.screen--lime { position: relative; min-height: 100svh; overflow: hidden; background: var(--lime); color: var(--coal); padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 16px)); }
-.cover-mark { width: var(--mark-w); margin: calc(var(--mark-w) * -0.27) 0 0 var(--gutter); color: var(--white); }
+/* A screen is at least as tall as the largest view a phone gives it [toolbars hidden], so the line always reaches
+   the bottom edge. On phones the mark is centred and as wide as the text column under it [--mark-w, from the
+   screen's own width: container units, so a desktop scrollbar never pushes it out]. */
+.screen--lime {
+  position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden; container-type: inline-size;
+  background: var(--lime); color: var(--coal); padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 16px));
+  --mark-w: min(100cqw - 2 * var(--gutter), 440px);
+}
+.cover-mark { width: var(--mark-w); margin: calc(var(--mark-w) * -0.27) auto 0; color: var(--white); }
 /* The mark's lower line runs on past the mark to the screen's bottom [pulse.js stretches it]; the text sits over it. */
 .cover-mark .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; overflow: visible; }
-.cover-body { position: relative; z-index: 1; padding: 18px var(--gutter) 0; max-width: 40rem; }
+.cover-body { position: relative; z-index: 1; padding: 18px 0 0; margin: 0 auto; max-width: var(--mark-w); }
 .lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; max-width: 28rem; }
 .live { display: flex; align-items: center; gap: 14px; margin: 26px 0 0; }
 .live-num { font: 700 46px/1 var(--display); font-variant-numeric: tabular-nums; }
@@ -110,14 +115,14 @@ button, input, textarea { font: inherit; color: inherit; }
 /* Phones: the line runs on through the text to the bottom; the language buttons part at the line, and the SIXT logo
    keeps clear space around it. */
 @media (max-width: 859px) {
-  .lang-pick { grid-template-columns: repeat(2, calc(var(--mark-w) * 0.5324)); column-gap: calc(var(--mark-w) * 0.0701); max-width: none; }
+  .lang-pick { grid-template-columns: calc(var(--mark-w) * 0.5324) 1fr; column-gap: calc(var(--mark-w) * 0.0701); max-width: none; }
   .partner img { background: var(--lime); box-shadow: 0 0 0 8px var(--lime); }
 }
 .lead--coal { color: var(--coal); font-size: 21px; }
 
 /* The flow on coal, with the PULSE rail on the right like the brand book pages */
 .flow {
-  position: relative; min-height: 100svh; overflow: hidden;
+  position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden;
   padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(36px, calc(env(safe-area-inset-bottom) + 20px)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }
@@ -188,14 +193,16 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 100px var(--white); -we
 .flow-foot img { height: 28px; width: auto; }
 
 
-/* Wider screens: the cover lays out like the brand book, mark full height on the left */
+/* Wider screens: the cover lays out like the brand book, the mark on the left: full height on a wide window, narrower
+   on a narrow one so the words always keep room; its line still runs from the top edge to the bottom [pulse.js]. */
 @media (min-width: 860px) {
   :root { --gutter: 6vw; --rail-w: 96px; }
   body { font-size: 21px; }
   .screen--lime { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 5vw; padding: 0; }
-  .cover-mark { width: auto; height: 100svh; margin: 0 0 0 var(--gutter); }
-  .cover-mark .mark { width: auto; height: 100%; }
-  .cover-body { padding: 48px var(--gutter) 48px 0; }
+  .cover-mark { width: min(100svh * 0.7107, 44vw); margin: 0 0 0 var(--gutter); }
+  .cover-body { padding: 48px var(--gutter) 48px 0; margin: 0; max-width: 40rem; }
+  .cover-body .display:not(.display--echo) { font-size: clamp(36px, min(6.6vw, 10.5svh), 84px); }
+  .cover-body .display--echo { font-size: clamp(22px, min(3.2vw, 5svh), 40px); }
   .choices-list { grid-template-columns: 1fr 1fr; column-gap: 18px; }
   .step { padding-right: calc(var(--rail-w) + 48px); }
 }

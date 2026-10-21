@@ -1,6 +1,7 @@
-// The PULSE logo's line reaching the bottom of its screen, and the pulse along it: a light signal flowing down,
-// right along the L's foot and down again, twice in a row like a heartbeat [ba-dum], then a rest.
-// Invariant: the line's lower end follows the screen's bottom; the pulse is decoration only, never under reduced motion.
+// The PULSE logo's line spanning its whole screen, and the pulse along it: a light signal flowing down, right along
+// the L's foot and down again, twice in a row like a heartbeat [ba-dum], then a rest.
+// Invariant: the line runs from the screen's top edge to its bottom edge whatever the screen's size [refit whenever a
+// screen changes size]; the pulse is decoration only, never under reduced motion.
 
 const NS = "http://www.w3.org/2000/svg";
 const ORANGE = "#E07D14";
@@ -14,11 +15,11 @@ const STEP_Y = 563.39;
 const L2X = 380.83;
 const L2TOP = 535.92;
 
-/** How each mark beats. `top` is where the pulse starts [above the mark]; it moves at `speed` units a second,
+/** How each mark beats. The pulse starts `lead` units above the line's top; it moves at `speed` units a second,
  *  then rests; `beats` rounds, then the line rests for good, so a phone left on a screen is not kept busy. */
 const KINDS = {
-  hero: { top: -150, core: 20, seg: 12, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.85, echo: 0.32, beats: 10 },
-  rail: { top: 100, core: 30, seg: 48, halo: [[70, 0.2], [110, 0.11], [150, 0.05]], speed: 3230, rest: 2.8, begin: 1.6, echo: 0.45, beats: 12 },
+  hero: { lead: 150, core: 20, seg: 12, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.85, echo: 0.32, beats: 10 },
+  rail: { lead: 100, core: 30, seg: 48, halo: [[70, 0.2], [110, 0.11], [150, 0.05]], speed: 3230, rest: 2.8, begin: 1.6, echo: 0.45, beats: 12 },
 };
 
 const el = (name, attrs) => {
@@ -30,21 +31,32 @@ const el = (name, attrs) => {
 /** The zig-zag from `top` down to `end`, and its length. */
 const zigzag = (top, end) => ({ d: `M${L1X} ${top}V${STEP_Y}H${L2X}V${end}`, len: STEP_Y - top + (L2X - L1X) + (end - STEP_Y) });
 
-/** Where line 2 must end, in the mark's units, to reach the bottom of the screen the mark sits on. */
-function bottomOf(svg) {
+/** Where the line must start and end, in the mark's units, to span the screen the mark sits on, top edge to bottom. */
+function span(svg) {
   const screen = svg.closest("section, form");
   const vb = svg.viewBox.baseVal;
   const box = svg.getBoundingClientRect();
-  if (!screen || !box.width) return vb.y + vb.height;
-  const units = (screen.getBoundingClientRect().bottom - box.top) * (vb.width / box.width);
-  return Math.max(vb.y + vb.height, Math.ceil(vb.y + units));
+  if (!screen || !box.width) return { top: vb.y, end: vb.y + vb.height };
+  const per = vb.width / box.width;
+  const edges = screen.getBoundingClientRect();
+  return {
+    top: Math.min(vb.y, Math.floor(vb.y - (box.top - edges.top) * per)),
+    end: Math.max(vb.y + vb.height, Math.ceil(vb.y + (edges.bottom - box.top) * per)),
+  };
 }
 
-/** Stretches the drawn line and its clip to `end`; the drawing keeps its place [pathLength is 1]. */
-function stretch(svg, line, end) {
-  const lower = svg.querySelector("clipPath rect:last-of-type");
+/** Stretches the drawn line and its clip to `top`..`end`; the drawing keeps its place [pathLength is 1]. */
+function stretch(svg, line, { top, end }) {
+  const rects = svg.querySelectorAll("clipPath rect");
+  const upper = rects[0];
+  const lower = rects[rects.length - 1];
+  if (upper && upper !== lower) {
+    const bottom = Number(upper.getAttribute("y")) + Number(upper.getAttribute("height"));
+    upper.setAttribute("y", String(top - 2));
+    upper.setAttribute("height", String(bottom - top + 2));
+  }
   if (lower) lower.setAttribute("height", String(end - L2TOP + 2));
-  line.setAttribute("d", `M${L1X} ${svg.viewBox.baseVal.y}V${STEP_Y}H${L2X}V${end}`);
+  line.setAttribute("d", `M${L1X} ${top}V${STEP_Y}H${L2X}V${end}`);
 }
 
 /** One dash whose front runs from the path's start to past its end, eased, then rests until the next beat. */
@@ -78,8 +90,8 @@ function comet(kind, path, timing, strength, clipId, box) {
   return { halo, core };
 }
 
-/** Fits every mark of `root` to its screen and starts the pulse, timed from now; call it whenever that screen shows
- *  or changes height. A fit that moved the line's end less than a few units leaves a running pulse alone. */
+/** Fits every mark of `root` to its screen and starts the pulse, timed from now; call it whenever that screen shows.
+ *  A refit [force false] that moved neither end of the line by more than a few units leaves a running pulse alone. */
 export function startPulse(root, { force = true } = {}) {
   if (!root) return;
   const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -89,13 +101,15 @@ export function startPulse(root, { force = true } = {}) {
     const letters = svg.querySelector(".mk-letters");
     const line = svg.querySelector(".mk-zz");
     if (!kind || !clip || !letters || !line) continue;
-    const end = bottomOf(svg);
-    if (!force && Math.abs(end - Number(svg.dataset.end || 0)) < 4) continue;
-    svg.dataset.end = String(end);
-    stretch(svg, line, end);
+    const fit = span(svg);
+    const moved = Math.abs(fit.end - Number(svg.dataset.end || 0)) + Math.abs(fit.top - Number(svg.dataset.top || 0));
+    if (!force && moved < 4) continue;
+    svg.dataset.top = String(fit.top);
+    svg.dataset.end = String(fit.end);
+    stretch(svg, line, fit);
     for (const old of svg.querySelectorAll(".mk-comet")) old.remove();
     if (still) continue;
-    const path = zigzag(kind.top, end + 120);
+    const path = zigzag(fit.top - kind.lead, fit.end + 120);
     const travel = path.len / kind.speed;
     const timing = { seg: kind.seg, travel, period: travel + kind.rest, beats: kind.beats, at: svg.getCurrentTime() + kind.begin };
     const box = svg.viewBox.baseVal;
@@ -104,4 +118,21 @@ export function startPulse(root, { force = true } = {}) {
     letters.before(first.halo, echo.halo);
     line.parentNode.after(first.core, echo.core);
   }
+}
+
+/** Refits the visible screen's marks whenever a screen changes size: fonts arriving, a step's content, the window,
+ *  a phone's toolbar. One refit per frame at most. */
+export function watchMarks(screens) {
+  if (!("ResizeObserver" in window)) return;
+  const changed = new Set();
+  let frame = 0;
+  const observer = new ResizeObserver((entries) => {
+    for (const entry of entries) changed.add(entry.target);
+    cancelAnimationFrame(frame);
+    frame = requestAnimationFrame(() => {
+      for (const screen of changed) if (!screen.hidden) startPulse(screen, { force: false });
+      changed.clear();
+    });
+  });
+  for (const screen of screens) if (screen) observer.observe(screen);
 }

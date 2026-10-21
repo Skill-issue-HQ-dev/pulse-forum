@@ -6,7 +6,7 @@ import { CATEGORIES, T } from "./strings.js";
 import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js";
 import { API } from "./config.js";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js";
-import { startPulse } from "./pulse.js";
+import { startPulse, watchMarks } from "./pulse.js";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
@@ -323,11 +323,7 @@ function wire() {
   for (const b of $$("[data-next]")) b.addEventListener("click", () => { if (checkStep(state.step)) goStep(state.step + 1); });
   for (const b of $$("[data-back]")) b.addEventListener("click", () => goStep(state.step - 1));
   window.addEventListener("popstate", onBack);
-  let refit = 0;
-  window.addEventListener("resize", () => {
-    clearTimeout(refit);
-    refit = setTimeout(() => startPulse($(`#${document.body.dataset.screen === "flow" ? "entry" : document.body.dataset.screen}`), { force: false }), 250);
-  });
+  watchMarks([$("#start"), $("#entry"), $("#done")]);
   $("#entry").addEventListener("submit", submit);
   $("#entry").addEventListener("input", (e) => {
     if (e.target.id === "story") updateCount();
