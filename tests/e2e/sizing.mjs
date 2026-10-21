@@ -7,7 +7,10 @@ const [base, out] = process.argv.slice(2);
 const SIZES = [[2560, 1440], [1920, 1080], [1536, 864], [1440, 900], [1366, 768], [1280, 800], [1280, 600], [1180, 820],
   [1100, 800], [1024, 768], [960, 640], [900, 1000], [880, 700], [860, 900], [859, 900], [820, 1180], [768, 1024],
   [700, 900], [600, 800], [480, 900], [430, 932], [414, 896], [390, 844], [393, 852], [375, 667], [360, 640], [320, 568]];
+// SIZING_ONLY="390x844,1280x800" limits a quick run to those sizes [the live resizes are skipped then].
+const ONLY = (process.env.SIZING_ONLY || "").split(",").filter(Boolean);
 const RESIZES = [[1000, 800], [860, 700], [859, 700], [600, 900], [390, 844], [1280, 800], [1600, 700], [900, 1000], [1237, 767]];
+const LV = new Set(["1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
 const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
 
 /** In the page: every layout fault of the visible screen, as text. */
@@ -30,13 +33,19 @@ function faults(first) {
     if (!node || node.nodeType !== 3) continue;
     const text = node.textContent;
     let at = 0;
+    const tops = [];
     for (const word of text.split(" ")) {
       const range = document.createRange();
       range.setStart(node, at); range.setEnd(node, at + word.length);
       const lines = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
       if (word && lines.size > 1) f.push(`word broken across lines: "${word}"`);
+      if (word) tops.push([word, Math.min(...lines)]);
       at += word.length + 1;
     }
+    // a headline over several lines never ends with one short word alone [a widow such as "DRAW!" or "YOU?"]
+    const lastTop = Math.max(...tops.map(([, t]) => t));
+    const last = tops.filter(([, t]) => Math.abs(t - lastTop) < 3).map(([w]) => w);
+    if (new Set(tops.map(([, t]) => t)).size > 1 && last.length === 1 && last[0].length <= 6) f.push(`headline ends with a lone word: "${last[0]}"`);
   }
   // the line spans the screen, top edge to bottom edge
   const svg = screen.querySelector("svg[data-pulse]");
@@ -79,12 +88,12 @@ async function mock(p) {
   await p.route("**/pulse/api/status", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"open":true,"count":37}' }));
   await p.route("**/pulse/api/entry", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"status":"new"}' }));
 }
-async function walk(p, label, shots) {
+async function walk(p, label, shots, lang = "en") {
   // Screenshots are for the eye: settle every finite animation [intro, draw, confetti] first; the pulse keeps beating.
   const settle = () => p.evaluate(() => { for (const a of document.getAnimations()) if (a.effect && a.effect.getComputedTiming().iterations !== Infinity) a.finish(); });
   const snap = async (name) => { if (shots) { await settle(); await p.waitForTimeout(80); await p.screenshot({ path: `${out}/${label.replace(/ /g, "_")}-${name}.png`, fullPage: true }); } };
   note(`${label} cover`, await p.evaluate(faults, true)); await snap("cover");
-  await p.click("button[data-lang=en]"); await p.waitForTimeout(450);
+  await p.click(`button[data-lang=${lang}]`); await p.waitForTimeout(450);
   note(`${label} step1`, await p.evaluate(faults, false)); await snap("step1");
   await p.click("#cat-idea"); await p.click("#step1 [data-next]"); await p.waitForTimeout(350);
   note(`${label} step2`, await p.evaluate(faults, false));
@@ -99,6 +108,7 @@ async function walk(p, label, shots) {
 for (const [name, type] of [["chromium", chromium], ["webkit", webkit]]) {
   const browser = await type.launch();
   for (const [w, h] of SIZES) {
+    if (ONLY.length && !ONLY.includes(`${w}x${h}`)) continue;
     const ctx = await browser.newContext({ viewport: { width: w, height: h } });
     const p = await ctx.newPage();
     await mock(p);
@@ -106,7 +116,17 @@ for (const [name, type] of [["chromium", chromium], ["webkit", webkit]]) {
     await p.waitForTimeout(1700);
     try { await walk(p, `${name} ${w}x${h}`, name === "chromium" && SHOT.has(`${w}x${h}`)); } catch (e) { note(`${name} ${w}x${h} walk`, [String(e).slice(0, 160)]); }
     await ctx.close();
+    if (!LV.has(`${w}x${h}`)) continue;
+    // the Latvian flow has longer words: walk it too on the sizes where wraps are tightest
+    const lv = await browser.newContext({ viewport: { width: w, height: h } });
+    const q = await lv.newPage();
+    await mock(q);
+    await q.goto(`${base}/index.html`);
+    await q.waitForTimeout(1700);
+    try { await walk(q, `${name} ${w}x${h} lv`, name === "chromium" && SHOT.has(`${w}x${h}`), "lv"); } catch (e) { note(`${name} ${w}x${h} lv walk`, [String(e).slice(0, 160)]); }
+    await lv.close();
   }
+  if (ONLY.length) { await browser.close(); continue; }
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
   const p = await ctx.newPage();
   await mock(p);
