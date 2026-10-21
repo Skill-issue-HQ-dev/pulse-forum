@@ -6,7 +6,7 @@ import { CATEGORIES, T } from "./strings.js?v=c507e17e";
 import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=69e070c7";
 import { API } from "./config.js?v=e1e99649";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
-import { startPulse, watchMarks } from "./pulse.js?v=d1b5a8f4";
+import { startPulse, watchMarks } from "./pulse.js?v=aee39965";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];

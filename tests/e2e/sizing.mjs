@@ -61,6 +61,14 @@ function faults(first) {
     const letters = { top: px(338), bottom: px(591) };
     if (phone && Math.abs(box.left - (vw - box.right)) > 1.5) f.push(`logo off centre ${Math.round(box.left)} | ${Math.round(vw - box.right)}`);
     if (letters.top < -1 || letters.bottom > vh + 1 || box.left < -1 || box.right > vw + 1) f.push("logo letters cut off");
+    // nothing may hide the line behind an invisible box [a block in the screen's own colour reads as a break]
+    const bg = getComputedStyle(screen).backgroundColor;
+    const lineX = [box.left + (360.64 - vb.x) * box.width / vb.width, box.left + (401.01 - vb.x) * box.width / vb.width];
+    for (const el of screen.querySelectorAll(".cover-body *, .cover-body")) {
+      const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+      const hides = cs.backgroundColor === bg || (cs.boxShadow !== "none" && cs.boxShadow.includes(bg));
+      if (hides && r.width && r.right > lineX[0] && r.left < lineX[1]) f.push(`an invisible box hides the line: ${el.tagName}.${el.className}`);
+    }
     const body = screen.querySelector(".cover-body").getBoundingClientRect();
     if (phone && body.top < letters.bottom - 1) f.push("text overlaps the logo letters");
     if (!phone && body.width < 300) f.push(`text column only ${Math.round(body.width)} px`);

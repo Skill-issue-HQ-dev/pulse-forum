@@ -10,10 +10,10 @@
 .mark--rail .mk-zz { animation: zz-draw 1.3s 0.1s cubic-bezier(0.65, 0, 0.35, 1) both; }
 @keyframes zz-draw { from { stroke-dashoffset: 1; } }
 
-.mark--hero .mk-letter { transform-box: fill-box; animation: letter-in 0.45s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.mark--hero .mk-letter:nth-child(2) { animation-delay: 0.27s; }
-.mark--hero .mk-letter:nth-child(3) { animation-delay: 0.45s; }
-.mark--hero .mk-letter:nth-child(4) { animation-delay: 0.52s; }
+.cover-mark > .mk-letter { animation: letter-in 0.45s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cover-mark > .mk-letter:nth-last-of-type(3) { animation-delay: 0.27s; }
+.cover-mark > .mk-letter:nth-last-of-type(2) { animation-delay: 0.45s; }
+.cover-mark > .mk-letter:nth-last-of-type(1) { animation-delay: 0.52s; }
 @keyframes letter-in { from { opacity: 0; transform: translateY(34px); } }
 
 .cover-body > * { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
@@ -63,5 +63,5 @@
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
-  .mk-comet, .confetti { display: none; }
+  .mk-pulse, .mk-comet, .confetti { display: none; }
 }

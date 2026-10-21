@@ -6,7 +6,7 @@
 const NS = "http://www.w3.org/2000/svg";
 const ORANGE = "#E07D14";
 /** The tail's fade behind the head, step by step. */
-const TAIL = Array.from({ length: 12 }, (_, k) => (1 - k / 12) ** 2);
+const TAIL = Array.from({ length: 20 }, (_, k) => (1 - k / 20) ** 2);
 /** Layer j covers the first j+1 steps; these opacities stack up to TAIL without seams between the steps. */
 const LAYERS = TAIL.map((a, k) => (k === TAIL.length - 1 ? a : 1 - (1 - a) / (1 - TAIL[k + 1])));
 /** The L-line in the mark's own units: line 1's centre, the step's height, line 2's centre and top. */
@@ -18,8 +18,8 @@ const L2TOP = 535.92;
 /** How each mark beats. The pulse starts `lead` units above the line's top; it moves at `speed` units a second,
  *  then rests; `beats` rounds, then the line rests for good, so a phone left on a screen is not kept busy. */
 const KINDS = {
-  hero: { lead: 150, core: 20, seg: 12, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.85, echo: 0.32, beats: 10 },
-  rail: { lead: 100, core: 30, seg: 48, halo: [[70, 0.2], [110, 0.11], [150, 0.05]], speed: 3230, rest: 2.8, begin: 1.6, echo: 0.45, beats: 12 },
+  hero: { lead: 150, core: 20, seg: 7.2, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.85, echo: 0.32, beats: 10 },
+  rail: { lead: 100, core: 30, seg: 28.8, halo: [[70, 0.2], [110, 0.11], [150, 0.05]], speed: 3230, rest: 2.8, begin: 1.6, echo: 0.45, beats: 12 },
 };
 
 const el = (name, attrs) => {
@@ -90,6 +90,17 @@ function comet(kind, path, timing, strength, clipId, box) {
   return { halo, core };
 }
 
+/** The layer the comets live in: an SVG of its own over the line [same box, same units], so a beat repaints only the
+ *  comets. Its clock starts when it is first added. */
+function pulseLayer(svg) {
+  let layer = svg.parentNode.querySelector(":scope > .mk-pulse");
+  if (!layer) {
+    layer = el("svg", { class: "mk-layer mk-pulse", viewBox: svg.getAttribute("viewBox"), "aria-hidden": "true" });
+    svg.after(layer);
+  }
+  return layer;
+}
+
 /** Fits every mark of `root` to its screen and starts the pulse, timed from now; call it whenever that screen shows.
  *  A refit [force false] that moved neither end of the line by more than a few units leaves a running pulse alone. */
 export function startPulse(root, { force = true } = {}) {
@@ -98,25 +109,23 @@ export function startPulse(root, { force = true } = {}) {
   for (const svg of root.querySelectorAll("svg[data-pulse]")) {
     const kind = KINDS[svg.dataset.pulse];
     const clip = svg.querySelector("clipPath");
-    const letters = svg.querySelector(".mk-letters");
     const line = svg.querySelector(".mk-zz");
-    if (!kind || !clip || !letters || !line) continue;
+    if (!kind || !clip || !line) continue;
     const fit = span(svg);
     const moved = Math.abs(fit.end - Number(svg.dataset.end || 0)) + Math.abs(fit.top - Number(svg.dataset.top || 0));
     if (!force && moved < 4) continue;
     svg.dataset.top = String(fit.top);
     svg.dataset.end = String(fit.end);
     stretch(svg, line, fit);
-    for (const old of svg.querySelectorAll(".mk-comet")) old.remove();
     if (still) continue;
+    const layer = pulseLayer(svg);
     const path = zigzag(fit.top - kind.lead, fit.end + 120);
     const travel = path.len / kind.speed;
-    const timing = { seg: kind.seg, travel, period: travel + kind.rest, beats: kind.beats, at: svg.getCurrentTime() + kind.begin };
+    const timing = { seg: kind.seg, travel, period: travel + kind.rest, beats: kind.beats, at: layer.getCurrentTime() + kind.begin };
     const box = svg.viewBox.baseVal;
     const first = comet(kind, path, timing, 1, clip.id, box);
     const echo = comet(kind, path, { ...timing, at: timing.at + kind.echo }, 0.65, clip.id, box);
-    letters.before(first.halo, echo.halo);
-    line.parentNode.after(first.core, echo.core);
+    layer.replaceChildren(first.halo, echo.halo, first.core, echo.core);
   }
 }
 

@@ -48,3 +48,7 @@
 - Sizing loop round 1 [v0.2.001]: gates clean on live; the eye caught a lone short word ending a headline ["DRAW!"
   on phones]. Headlines now balance their lines, paragraphs wrap without orphans; the sizing gate flags a lone short
   last word, walks the Latvian flow too and settles animations before its screenshots.
+- v0.2.002 [loop round 2 + a phone report]: the white line no longer breaks [the SIXT logo sits left under its words
+  instead of an invisible clear-space box over the line]; the logo is drawn in layers [line, pulse, each letter], so
+  letters rise on the GPU and a beat repaints only the pulse: WebKit intro frames over 20 ms 6-8 -> 1; the pulse tail
+  has 20 finer steps. Gate rule added: nothing may hide the line behind a box in the screen's own colour.
