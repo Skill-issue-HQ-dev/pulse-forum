@@ -2,27 +2,28 @@
    down that line [pulse.js], step changes, progress squares, small answers to taps, and square confetti.
    Invariant: transform, opacity and stroke-dashoffset only, and prefers-reduced-motion turns all of it off. */
 
-/* The L-line draws itself in one stroke: down, right along the L's foot, down again. pathLength="1" on the path,
-   so 1 is the whole line. P and U rise while it comes down, S and E once it has passed the L. */
+/* The logo comes first: the L-line draws itself in one stroke [down, right along the L's foot, down again to the
+   screen's bottom; pathLength="1", so 1 is the whole line] while P and U, then S and E rise. Only then the words rise,
+   one after another, and after them the pulse starts [pulse.js]. */
 .mk-zz { stroke-dasharray: 1; stroke-dashoffset: 0; }
-.mark--hero .mk-zz { animation: zz-draw 0.95s 0.05s cubic-bezier(0.65, 0, 0.35, 1) both; }
+.mark--hero .mk-zz { animation: zz-draw 0.8s 0.05s cubic-bezier(0.65, 0, 0.35, 1) both; }
 .mark--rail .mk-zz { animation: zz-draw 1.3s 0.1s cubic-bezier(0.65, 0, 0.35, 1) both; }
 @keyframes zz-draw { from { stroke-dashoffset: 1; } }
 
-.mark--hero .mk-letter { transform-box: fill-box; animation: letter-in 0.55s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.mark--hero .mk-letter:nth-child(2) { animation-delay: 0.38s; }
-.mark--hero .mk-letter:nth-child(3) { animation-delay: 0.62s; }
-.mark--hero .mk-letter:nth-child(4) { animation-delay: 0.7s; }
+.mark--hero .mk-letter { transform-box: fill-box; animation: letter-in 0.45s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.mark--hero .mk-letter:nth-child(2) { animation-delay: 0.27s; }
+.mark--hero .mk-letter:nth-child(3) { animation-delay: 0.45s; }
+.mark--hero .mk-letter:nth-child(4) { animation-delay: 0.52s; }
 @keyframes letter-in { from { opacity: 0; transform: translateY(34px); } }
 
-.cover-body > * { animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.cover-body > :nth-child(1) { animation-delay: 0.62s; }
-.cover-body > :nth-child(2) { animation-delay: 0.7s; }
-.cover-body > :nth-child(3) { animation-delay: 0.78s; }
-.cover-body > :nth-child(4) { animation-delay: 0.86s; }
-.cover-body > :nth-child(5) { animation-delay: 0.94s; }
-.cover-body > :nth-child(6) { animation-delay: 1.02s; }
-.live:not([hidden]) { animation: rise-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cover-body > * { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.cover-body > :nth-child(1) { animation-delay: 1s; }
+.cover-body > :nth-child(2) { animation-delay: 1.07s; }
+.cover-body > :nth-child(3) { animation-delay: 1.14s; }
+.cover-body > :nth-child(4) { animation-delay: 1.21s; }
+.cover-body > :nth-child(5) { animation-delay: 1.28s; }
+.cover-body > :nth-child(6) { animation-delay: 1.35s; }
+.live:not([hidden]) { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
 
 /* Steps slide in from the side they come from */

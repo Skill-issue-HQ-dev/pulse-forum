@@ -17,7 +17,7 @@ const L2TOP = 535.92;
 /** How each mark beats. `top` is where the pulse starts [above the mark]; it moves at `speed` units a second,
  *  then rests; `beats` rounds, then the line rests for good, so a phone left on a screen is not kept busy. */
 const KINDS = {
-  hero: { top: -150, core: 20, seg: 12, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.25, echo: 0.32, beats: 10 },
+  hero: { top: -150, core: 20, seg: 12, halo: [[44, 0.16], [68, 0.09], [96, 0.05]], speed: 700, rest: 2.9, begin: 1.85, echo: 0.32, beats: 10 },
   rail: { top: 100, core: 30, seg: 48, halo: [[70, 0.2], [110, 0.11], [150, 0.05]], speed: 3230, rest: 2.8, begin: 1.6, echo: 0.45, beats: 12 },
 };
 

@@ -13,6 +13,8 @@ const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
 const TIMEOUT_MS = 15000;
 const LIVE_FROM = 10;
 const LIVE_EVERY_MS = 20000;
+/** The cover's words have risen by now [motion.css]; the story count joins them, never before them. */
+const INTRO_MS = 1300;
 const CONTACT_FIELDS = ["first", "last", "email", "phone", "company"];
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -298,8 +300,10 @@ function showLive(n) {
   if (n < LIVE_FROM) return;
   $("#live-lv").textContent = `${lvStories(n)} līdz šim`;
   $("#live-en").textContent = `${n === 1 ? "story" : "stories"} so far`;
-  live.hidden = false;
-  countUp($("#live-num"), n);
+  setTimeout(() => {
+    live.hidden = false;
+    countUp($("#live-num"), n);
+  }, Math.max(0, INTRO_MS - performance.now()));
 }
 
 /** Enter on a contact field moves to the next one; on the last it goes to the consent box. */
