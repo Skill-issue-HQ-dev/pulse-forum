@@ -1,6 +1,6 @@
-//! Tests for io::store: first e-mail wins (new/retry/taken), one chance per phone, the open flag, exclude, delete,
-//! the draw (only while closed, skips excluded entries and earlier winners, numbered from 1, keeps its pool, one
-//! transaction), clear, and a private database file.
+//! Tests for io::store: first e-mail wins (new/retry/taken), one chance per phone (checked through an index), the
+//! open flag, exclude, delete, the draw (only while closed, skips excluded entries and earlier winners, numbered
+//! from 1, keeps its pool, one transaction), clear, and a private database file.
 
 use pulse_forum::core::entry::{check, Check, Entry, EntryInput};
 use pulse_forum::io::store::{self, Cleared, Deleted, Drawn, Inserted};
@@ -331,5 +331,20 @@ fn a_deleted_entry_is_gone_from_the_file_and_its_log() {
         let bytes = std::fs::read(dir.path().join(file)).unwrap_or_default();
         let text = String::from_utf8_lossy(&bytes);
         assert!(!text.contains(marker) && !text.contains("marker-zqxk"), "{file} still holds the deleted entry");
+    }
+}
+
+#[test]
+fn the_same_phone_check_reads_an_index_not_every_row() {
+    let (_dir, conn) = db();
+    for sql in [
+        "SELECT MIN(id) FROM entries WHERE phone_key = ?1 AND ?1 <> ''",
+        "SELECT EXISTS (SELECT 1 FROM entries WHERE phone_key = ?1 AND ?1 <> '')",
+    ] {
+        let mut stmt = conn.prepare(&format!("EXPLAIN QUERY PLAN {sql}")).unwrap();
+        let plan: Vec<String> =
+            stmt.query_map(["+37120000001"], |r| r.get(3)).unwrap().map(Result::unwrap).collect();
+        assert!(plan.iter().any(|step| step.contains("entries_phone")), "{sql}: {plan:?}");
+        assert!(!plan.iter().any(|step| step.starts_with("SCAN entries")), "{sql}: {plan:?}");
     }
 }

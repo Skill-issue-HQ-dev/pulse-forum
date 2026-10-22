@@ -65,3 +65,6 @@
   "Piedalīties izlozē" broke in two]; the prize note, checkbox labels and rules wrap like the lead, never one short
   word alone on the last line ["only.", "money.", "again.", "[Rīgas robežās]." kept together]. Gate rules added:
   a button label on one line; no lone short last word in a text block. A walk error now prints 400 characters.
+- v0.2.006: the same-phone check reads an index [entries(phone_key)]. Before, every entry read the whole entries
+  table, so a big room got slower as it filled. 20,000 entries a minute on a laptop: 3.6 s CPU instead of 28.4 s,
+  every answer 200. The collector's /version now carries the release number [0.2.6, was 0.1.0].

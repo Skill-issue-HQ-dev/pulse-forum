@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS entries (
     phone_key TEXT NOT NULL DEFAULT '',
     dup_of INTEGER
 );
+-- The same-phone check in insert() reads this index, so entry 10 000 costs what entry 1 did.
+CREATE INDEX IF NOT EXISTS entries_phone ON entries(phone_key);
 CREATE TABLE IF NOT EXISTS draws (
     n INTEGER PRIMARY KEY,
     at TEXT NOT NULL,
