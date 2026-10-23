@@ -1,5 +1,5 @@
-//! Tests for core::entry: every 422 code and their order, trimming, characters (not bytes), the honeypot,
-//! the e-mail key, and the e-mail, phone and token rules.
+//! Tests for core::entry: every 422 code and their order, trimming, characters (not bytes), the entry without a
+//! story [the break option], the honeypot, the e-mail key, and the e-mail, phone and token rules.
 
 use pulse_forum::core::entry::{Check, EntryInput, check, email_key, email_ok, phone_key, phone_ok, token_ok};
 use serde_json::{json, Value};
@@ -82,9 +82,7 @@ fn every_error_code_has_a_trigger() {
         ("lang", with("lang", json!(""))),
         ("category", with("category", json!("nope"))),
         ("category", with("category", json!("New_Contact"))),
-        ("story_short", with("story", json!(long(19)))),
-        ("story_short", with("story", json!("   "))),
-        ("story_long", with("story", json!(long(1501)))),
+        ("story_long", with("story", json!(long(501)))),
         ("missing", with("first", json!("  "))),
         ("missing", with("last", json!(""))),
         ("missing", with("email", json!(""))),
@@ -113,21 +111,20 @@ fn every_error_code_has_a_trigger() {
     let mut seen: Vec<&str> = cases.iter().map(|(c, _)| *c).chain(["consent"]).collect();
     seen.sort_unstable();
     seen.dedup();
-    assert_eq!(seen.len(), 10, "all ten codes are covered: {seen:?}");
+    assert_eq!(seen.len(), 9, "all nine codes are covered: {seen:?}");
 }
 
 #[test]
 fn the_first_failing_rule_wins_in_the_contracts_order() {
     // Everything is wrong at once; each step fixes only the rule that just spoke, so the next one must speak.
     let mut v = json!({
-        "token": "zz", "lang": "de", "category": "nope", "story": "",
+        "token": "zz", "lang": "de", "category": "nope", "story": "x".repeat(501),
         "first": "", "last": "Ķirsis", "email": "e".repeat(121), "phone": "x", "company": "", "consent": false
     });
-    let steps: [(&str, &str, Value); 10] = [
+    let steps: [(&str, &str, Value); 9] = [
         ("token", "token", json!(TOKEN)),
         ("lang", "lang", json!("en")),
         ("category", "category", json!("idea")),
-        ("story_short", "story", json!("x".repeat(1501))),
         ("story_long", "story", base()["story"].clone()),
         ("missing", "first", json!("Testa")),
         ("too_long", "email", json!("e@x")),
@@ -145,12 +142,11 @@ fn the_first_failing_rule_wins_in_the_contracts_order() {
 #[test]
 fn lengths_count_characters_not_bytes() {
     // Latvian letters are two bytes each, an emoji four: all count once.
-    assert!(is_valid(&with("story", json!("ā".repeat(20)))));
-    assert_eq!(code(&with("story", json!("ā".repeat(19)))), "story_short");
-    assert!(is_valid(&with("story", json!("ū".repeat(1500)))));
-    assert_eq!(code(&with("story", json!("ū".repeat(1501)))), "story_long");
-    assert!(is_valid(&with("story", json!("😀".repeat(20)))));
-    assert_eq!(code(&with("story", json!("😀".repeat(19)))), "story_short");
+    assert!(is_valid(&with("story", json!("ā"))));
+    assert!(is_valid(&with("story", json!("ū".repeat(500)))));
+    assert_eq!(code(&with("story", json!("ū".repeat(501)))), "story_long");
+    assert!(is_valid(&with("story", json!("😀".repeat(500)))));
+    assert_eq!(code(&with("story", json!("😀".repeat(501)))), "story_long");
     assert!(is_valid(&with("first", json!("ž".repeat(80)))));
     assert_eq!(code(&with("first", json!("ž".repeat(81)))), "too_long");
     assert!(is_valid(&with("last", json!("Ķ".repeat(80)))));
@@ -162,11 +158,24 @@ fn lengths_count_characters_not_bytes() {
 
 #[test]
 fn length_rules_run_after_trimming() {
-    let padded_short = format!("   {}   ", "x".repeat(19));
-    assert_eq!(code(&with("story", json!(padded_short))), "story_short");
-    let padded_ok = format!("  {}  ", "x".repeat(20));
+    let padded_ok = format!("  {}  ", "x".repeat(500));
     assert!(is_valid(&with("story", json!(padded_ok))));
+    let padded_long = format!(" {} ", "x".repeat(501));
+    assert_eq!(code(&with("story", json!(padded_long))), "story_long");
     assert!(is_valid(&with("first", json!(format!(" {} ", "a".repeat(80))))));
+}
+
+#[test]
+fn an_empty_story_is_the_break_option_and_still_enters() {
+    // The guest ticked "Dodos pauzē…": the page sends no story; spaces alone or no field at all count the same.
+    let mut missing = base();
+    missing.as_object_mut().unwrap().remove("story");
+    for v in [with("story", json!("")), with("story", json!("  \n ")), missing] {
+        match check(input(&v)) {
+            Check::Valid(e) => assert_eq!(e.story, "", "{v}"),
+            other => panic!("expected a valid entry, got {other:?} for {v}"),
+        }
+    }
 }
 
 #[test]

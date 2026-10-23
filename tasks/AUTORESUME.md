@@ -68,3 +68,11 @@
 - v0.2.006: the same-phone check reads an index [entries(phone_key)]. Before, every entry read the whole entries
   table, so a big room got slower as it filled. 20,000 entries a minute on a laptop: 3.6 s CPU instead of 28.4 s,
   every answer 200. The collector's /version now carries the release number [0.2.6, was 0.1.0].
+- v0.3.000 [the organisers' corrections, 23.10]: their Latvian words and the same in English [question "Kur", lead,
+  prize plus today's SIXT suitcase on its own line, story lead and example, contact title, consent, rules, thanks].
+  Eight answers in their two-per-row order: "Jauna draudzība" replaces "Jauns kontakts" [code new_contact retired,
+  now refused]. A story is 1-500 characters, or the guest ticks "Dodos pauzē meklēt savu negaidītākā kontakta
+  stāstu!": no story, no share box, still in the draw [the collector takes an empty story; the organisers' page says
+  "Bez stāsta"]. Share image re-rendered from the cover. tests/frontend_rules.rs holds the page's categories and
+  limits to the collector's. Open with the operator: rule 1 [organisers + questions address] was not in their list
+  and stays; their data rule says "only for the draw and contact" while the optional share box stays.

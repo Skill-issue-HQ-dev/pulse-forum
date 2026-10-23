@@ -134,7 +134,7 @@ pub fn valid_entry(n: u32) -> Value {
     json!({
         "token": format!("{n:032x}"),
         "lang": "lv",
-        "category": "new_contact",
+        "category": "friendship",
         "story": "Satiku jaunu cilvēku pasākumā un mēs sākām sarunu par kopīgu projektu.",
         "first": "Testa",
         "last": "Ķirsis",

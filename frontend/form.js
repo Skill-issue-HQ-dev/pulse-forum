@@ -1,8 +1,8 @@
-// The entry rules the page checks before sending, the same ones the collector applies again.
-// Owns field limits and shape checks; returns error keys from strings.js, never text.
+// The entry rules the page checks before sending, the same ones the collector applies again [it also takes an
+// empty story: the break option]. Owns field limits and shape checks; returns error keys from strings.js, never text.
 // Invariant: lengths count characters, not bytes, so ā or an emoji is one, as on the server.
 
-export const LIMITS = { storyMin: 20, storyMax: 1500, name: 80, email: 120, company: 120, phoneDigitsMin: 7, phoneDigitsMax: 15 };
+export const LIMITS = { storyMin: 1, storyMax: 500, name: 80, email: 120, company: 120, phoneDigitsMin: 7, phoneDigitsMax: 15 };
 
 export const chars = (s) => Array.from(s).length;
 
@@ -25,6 +25,7 @@ export function phoneOk(phone) {
   return digits >= LIMITS.phoneDigitsMin && digits <= LIMITS.phoneDigitsMax;
 }
 
+/** A written story: 1 to 500 characters after trimming. The break option sends none, so app.js skips this then. */
 export function storyError(story) {
   const n = chars(story.trim());
   if (n < LIMITS.storyMin) return "errStoryShort";
@@ -50,7 +51,6 @@ export function contactErrors(v) {
 /** The collector's 422 codes, mapped to the step and field that show them. */
 export const SERVER_CODES = {
   category: { step: 1, field: "category", key: "errPick" },
-  story_short: { step: 2, field: "story", key: "errStoryShort" },
   story_long: { step: 2, field: "story", key: "errStoryLong" },
   missing: { step: 3, field: "first", key: "errMissing" },
   too_long: { step: 3, field: "first", key: "errTooLong" },

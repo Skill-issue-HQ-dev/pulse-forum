@@ -61,8 +61,8 @@ function faults(first) {
     const lone = widow(ws);
     if (lone) f.push(`headline ends with a lone word: "${lone}"`);
   }
-  // nor does a block of text [lead, prize note, checkbox label]
-  for (const el of screen.querySelectorAll(".lead, .prize, .check > span:last-child, .rules li")) {
+  // nor does a block of text [lead, each prize line, checkbox label, the break option]
+  for (const el of screen.querySelectorAll(".lead, .prize-line, .check > span:last-child, .rules li, .choice--pause .choice-text")) {
     if (!shown(el)) continue;
     const lone = widow(words(el));
     if (lone) f.push(`text ends with a lone word: "${lone}"`);

@@ -3,11 +3,13 @@
 // Invariant: guest text is only ever set as textContent, and the key never leaves this tab except to API.
 
 import { API } from "./config.js?v=e1e99649";
-import { CATEGORIES, T } from "./strings.js?v=c507e17e";
+import { CATEGORIES, T } from "./strings.js?v=353a0821";
 
 const KEY_STORE = "pulse-admin-key";
 const REFRESH_MS = 20000;
 const LABELS = T.lv.categories;
+/** An entry without a story: the guest ticked the break option [T.lv.pause] instead of writing one. */
+const NO_STORY = "Bez stāsta: izvēlējās doties pauzē meklēt savu stāstu.";
 const $ = (sel) => document.querySelector(sel);
 const state = { key: "", data: null, busy: false, timer: 0 };
 
@@ -94,7 +96,7 @@ function entryRow(e) {
   if (e.dup_of) head.append(el("span", "tag tag--twin", `Tas pats tālrunis kā Nr. ${e.dup_of}`));
   const name = el("p", "entry-name", `${e.first} ${e.last}${e.company ? `, ${e.company}` : ""}`);
   const contact = el("p", "entry-contact", `${e.phone} / ${e.email}`);
-  const story = el("p", "entry-story", e.story);
+  const story = el("p", e.story ? "entry-story" : "entry-story is-empty", e.story || NO_STORY);
   const flags = el("p", "entry-flags", e.share ? "Drīkst publicēt stāstu ar vārdu" : "Stāstu publicēt nedrīkst");
   const toggle = el("button", "btn btn--line btn--small", e.excluded ? "Iekļaut izlozē" : "Izslēgt no izlozes");
   toggle.type = "button";
@@ -123,7 +125,7 @@ function showWinner(w, dr) {
   Object.assign($("#winner-phone"), { textContent: w.phone, href: `tel:${w.phone.replace(/[^+\d]/g, "")}` });
   Object.assign($("#winner-email"), { textContent: w.email, href: `mailto:${encodeURIComponent(w.email)}` });
   $("#winner-company").textContent = w.company || "";
-  $("#winner-story").textContent = w.story;
+  $("#winner-story").textContent = w.story || NO_STORY;
   $("#winner-meta").textContent = `${LABELS[w.category] || w.category}. Izlozēts ${riga(dr.at)} no ${dr.pool} dalībniekiem.`;
 }
 

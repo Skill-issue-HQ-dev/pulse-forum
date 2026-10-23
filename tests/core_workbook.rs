@@ -33,7 +33,7 @@ fn row(id: i64, first: &str) -> Row {
         id,
         at: "2026-10-28T10:15:02Z".into(),
         lang: "lv".into(),
-        category: "new_contact".into(),
+        category: "friendship".into(),
         story: "Satiku jaunu cilvēku.".into(),
         first: first.into(),
         last: "Ķirsis".into(),
@@ -96,7 +96,7 @@ fn the_stories_sheet_has_the_contracts_columns_and_one_row_per_entry() {
     );
     // Entry 1: number, language, the Latvian category label, the names, JĀ/NĒ, no draw number.
     assert!(cell(&s1, "A2").contains("<v>1</v>"));
-    assert!(cell(&s1, "C2").contains("<t>LV</t>") && cell(&s1, "D2").contains("<t>Jauns kontakts</t>"));
+    assert!(cell(&s1, "C2").contains("<t>LV</t>") && cell(&s1, "D2").contains("<t>Jauna draudzība</t>"));
     assert!(cell(&s1, "F2").contains("<t>Testa</t>") && cell(&s1, "G2").contains("<t>Ķirsis</t>"));
     assert!(cell(&s1, "K2").contains("<t>JĀ</t>") && cell(&s1, "L2").contains("<t>NĒ</t>"));
     assert!(!has_cell(&s1, "M2"), "an entry that won nothing has no draw number");

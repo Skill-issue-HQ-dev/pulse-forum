@@ -39,6 +39,7 @@
 .btn:active:not(:disabled) { transform: scale(0.97); }
 @media (hover: hover) { .btn--lime:hover, .btn--coal:hover { filter: brightness(1.07); } }
 .choice { transition: color 0.15s; }
+#story, .count { transition: opacity 0.15s; }
 .choice input:checked + .sq { animation: sq-pop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
 .check input:checked + .box { animation: sq-pop 0.22s cubic-bezier(0.3, 1.6, 0.5, 1); }
 @keyframes sq-pop { from { transform: scale(0.5); } }

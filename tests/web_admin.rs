@@ -107,7 +107,7 @@ async fn the_entries_json_has_the_contracts_shape() {
         assert_eq!(keys(e), names(&["id", "at", "lang", "category", "story", "first", "last", "email", "phone", "company", "share", "excluded", "won", "dup_of"]));
         assert!(e["share"].is_boolean() && e["excluded"].is_boolean() && e["id"].is_i64() && e["at"].as_str().unwrap().ends_with('Z'));
         let phone = format!("+371 2{:07}", e["id"].as_i64().unwrap());
-        assert_eq!((e["lang"].as_str(), e["category"].as_str(), e["phone"].as_str()), (Some("lv"), Some("new_contact"), Some(phone.as_str())));
+        assert_eq!((e["lang"].as_str(), e["category"].as_str(), e["phone"].as_str()), (Some("lv"), Some("friendship"), Some(phone.as_str())));
         assert_eq!(e["dup_of"], Value::Null, "every phone differs");
         let want_won = if e["id"] == winner_id { json!(n) } else { Value::Null };
         assert_eq!(e["won"], want_won, "won is the draw number for the winner, null for everyone else");

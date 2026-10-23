@@ -49,6 +49,7 @@
 .entry-name { margin: 8px 0 0; font: 700 24px/1.1 var(--body); }
 .entry-contact { margin: 4px 0 0; font-size: 18px; overflow-wrap: anywhere; }
 .entry-story { margin: 10px 0 0; max-width: 42em; white-space: pre-wrap; }
+.entry-story.is-empty { opacity: 0.6; }
 .entry-flags { margin: 8px 0 12px; font-size: 16px; color: var(--white); }
 
 .danger p { max-width: 40em; }

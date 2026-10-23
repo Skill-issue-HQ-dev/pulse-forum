@@ -2,8 +2,8 @@
 // Owns screens, the draft kept on the phone, and the outbox that resends until the collector answers.
 // Invariant: API is the only address the page calls; "thanks" shows only after the collector stored the entry.
 
-import { CATEGORIES, T } from "./strings.js?v=c507e17e";
-import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=69e070c7";
+import { CATEGORIES, T } from "./strings.js?v=353a0821";
+import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=e5e071ba";
 import { API } from "./config.js?v=e1e99649";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
 import { startPulse, watchMarks } from "./pulse.js?v=aee39965";
@@ -35,12 +35,24 @@ function applyLang() {
   for (const el of $$("[data-t-ph]")) el.placeholder = t(el.dataset.tPh);
   for (const el of $$("[data-t-aria]")) el.setAttribute("aria-label", t(el.dataset.tAria));
   for (const code of CATEGORIES) $(`#cat-${code} .choice-text`).textContent = t("categories")[code];
-  $("#rules-list").replaceChildren(...t("rules").map((line) => Object.assign(document.createElement("li"), { textContent: line })));
+  $("#rules-list").replaceChildren(...t("rules").map(ruleItem));
   updateCount();
   for (const el of $$(".err")) if (el.dataset.key) el.textContent = t(el.dataset.key);
   if (state.done) renderDone(state.done);
   const k = $("#sending").dataset.key;
   if (k || state.sending) $("#sending").textContent = t(k || "sending");
+}
+
+/** One rule as a list item: a line of text, or [its lead, its items] with the items as a list inside it. */
+function ruleItem(rule) {
+  const item = (text) => Object.assign(document.createElement("li"), { textContent: text });
+  if (typeof rule === "string") return item(rule);
+  const [lead, ...items] = rule;
+  const list = document.createElement("ul");
+  list.append(...items.map(item));
+  const li = document.createElement("li");
+  li.append(lead, list);
+  return li;
 }
 
 function buildChoices() {
@@ -63,7 +75,7 @@ function values() {
     story: $("#story").value,
     first: $("#first").value, last: $("#last").value, email: $("#email").value,
     phone: $("#phone").value, company: $("#company").value,
-    consent: $("#consent").checked, share: $("#share").checked,
+    consent: $("#consent").checked, share: $("#share").checked, pause: $("#pause").checked,
   };
 }
 
@@ -75,6 +87,15 @@ function restoreDraft() {
   for (const f of ["story", "first", "last", "email", "phone", "company"]) if (typeof d[f] === "string") $(`#${f}`).value = d[f];
   $("#consent").checked = !!d.consent;
   $("#share").checked = !!d.share;
+  $("#pause").checked = !!d.pause;
+  syncPause();
+}
+
+/** The break option: no story now, so the story box steps back and step 3 drops the share box [nothing to share]. */
+function syncPause() {
+  const on = $("#pause").checked;
+  $("#step2").classList.toggle("is-pause", on);
+  $("#share").closest(".check").hidden = on;
 }
 
 function setErr(field, key) {
@@ -147,7 +168,7 @@ function checkStep(n) {
     setErr("category", v.category ? null : "errPick");
     bad = v.category ? null : $("#choices");
   } else if (n === 2) {
-    const key = storyError(v.story);
+    const key = v.pause ? null : storyError(v.story);
     setErr("story", key);
     bad = key ? $("#story") : null;
   } else {
@@ -188,11 +209,12 @@ function finish(kind) {
   }
 }
 
+/** The break option sends no story, and with no story there is nothing to share. */
 function payload(v, token) {
   return {
-    token, lang: state.lang, category: v.category, story: v.story.trim(),
+    token, lang: state.lang, category: v.category, story: v.pause ? "" : v.story.trim(),
     first: v.first.trim(), last: v.last.trim(), email: v.email.trim(), phone: v.phone.trim(),
-    company: v.company.trim(), consent: v.consent, share: v.share, website: $("#website").value,
+    company: v.company.trim(), consent: v.consent, share: v.share && !v.pause, website: $("#website").value,
   };
 }
 
@@ -326,8 +348,12 @@ function wire() {
   watchMarks([$("#start"), $("#entry"), $("#done")]);
   $("#entry").addEventListener("submit", submit);
   $("#entry").addEventListener("input", (e) => {
-    if (e.target.id === "story") updateCount();
-    const field = e.target.name === "category" ? "category" : e.target.id;
+    const id = e.target.id;
+    if (id === "story") updateCount();
+    // Writing takes the break option back; either choice settles the story's error.
+    if (id === "story" && $("#pause").checked) $("#pause").checked = false;
+    if (id === "story" || id === "pause") syncPause();
+    const field = e.target.name === "category" ? "category" : id === "pause" ? "story" : id;
     const err = $(`#err-${field}`);
     if (err && err.dataset.key) setErr(field, null);
     store.set(KEYS.draft, values());

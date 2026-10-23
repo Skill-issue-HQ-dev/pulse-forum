@@ -50,8 +50,8 @@ pub enum Check {
     Valid(Entry),
     /// The honeypot was filled: answer as if stored, store nothing.
     Bot,
-    /// The first failing rule's error code (token, lang, category, story_short, story_long, missing,
-    /// too_long, email, phone, consent).
+    /// The first failing rule's error code (token, lang, category, story_long, missing, too_long, email,
+    /// phone, consent).
     Invalid(&'static str),
 }
 
@@ -86,7 +86,7 @@ fn text(v: Option<String>) -> String {
     v.map(|s| s.trim().to_string()).unwrap_or_default()
 }
 
-/// The ten rules, first failure wins: token, lang, category, story, missing, length, e-mail, phone, consent.
+/// The nine rules, first failure wins: token, lang, category, story, missing, length, e-mail, phone, consent.
 fn rules(e: &Entry, consent: bool) -> Result<(), &'static str> {
     if !token_ok(&e.token) {
         return Err("token");
@@ -114,11 +114,9 @@ fn rules(e: &Entry, consent: bool) -> Result<(), &'static str> {
     Ok(())
 }
 
+/// An empty story is the break option [the guest went to find one]; a written story runs to STORY_MAX_CHARS.
 fn story_rule(story: &str) -> Result<(), &'static str> {
-    let n = story.chars().count();
-    if n < config::STORY_MIN_CHARS {
-        Err("story_short")
-    } else if n > config::STORY_MAX_CHARS {
+    if story.chars().count() > config::STORY_MAX_CHARS {
         Err("story_long")
     } else {
         Ok(())

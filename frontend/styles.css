@@ -75,7 +75,7 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 .lead { display: block; margin: 1rem 0 0; max-width: 34em; text-wrap: pretty; }
 /* Every block of text wraps like the lead: never one short word alone on its last line. */
-.prize, .check, .rules li { text-wrap: pretty; }
+.prize, .check, .rules li, .choice--pause { text-wrap: pretty; }
 
 /* Buttons */
 .btn {
@@ -152,6 +152,9 @@ button, input, textarea { font: inherit; color: inherit; }
 .step .display { color: var(--lime); }
 .step .display:focus { outline: none; }
 .prize { margin: 1.375rem 0 0; padding: 0.125rem 0 0.125rem 0.875rem; border-left: 0.25rem solid var(--orange); font-weight: 700; max-width: 34em; }
+/* Two prizes, one bar: the ride on the 29th, then today's suitcase on its own line. */
+.prize-line { display: block; }
+.prize-line + .prize-line { margin-top: 0.5rem; }
 
 .choices { margin-top: 1.875rem; }
 .choices-title { margin: 0 0 0.625rem; font-weight: 700; }
@@ -182,6 +185,11 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
 .count[data-state="near"] { color: var(--orange); }
 .err { margin: 0.375rem 0 0; color: var(--orange); font-weight: 700; font-size: 1.125rem; }
 .err:empty { display: none; }
+/* The story step's second way: an orange "or" label, then the break option; ticked, it sets the story box aside. */
+.or { display: flex; align-items: center; gap: 0.75rem; max-width: 40rem; margin: 1.5rem 0 0.375rem; color: var(--orange); font: 700 1rem/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.05em; }
+.or::after { content: ""; flex: 1; height: 0.125rem; background: currentColor; opacity: 0.5; }
+.choice--pause { max-width: 40rem; }
+.is-pause #story, .is-pause .count { opacity: 0.4; }
 
 .check { position: relative; display: flex; gap: 0.875rem; align-items: flex-start; margin-top: 1.375rem; max-width: 34rem; cursor: pointer; font-size: 1.1875rem; }
 .check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
@@ -199,6 +207,10 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
 .rules ul { margin: 0.625rem 0 0; padding: 0; list-style: none; font-size: 1.0625rem; }
 .rules li { position: relative; margin-top: 0.5rem; padding-left: 1.125rem; }
 .rules li::before { content: ""; position: absolute; left: 0; top: 0.55em; width: 0.4375rem; height: 0.4375rem; background: var(--orange); }
+/* A list inside a rule [the prizes]: short dashes instead of squares. */
+.rules li ul { margin-top: 0.25rem; }
+.rules li li { margin-top: 0.25rem; }
+.rules li li::before { top: 0.7em; height: 0.125rem; }
 
 .sending { margin: 1.375rem 0 0; font-weight: 700; color: var(--lime); max-width: 34rem; }
 .sending:empty { display: none; }

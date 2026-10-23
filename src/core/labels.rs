@@ -9,15 +9,16 @@ pub struct Category {
     pub en: &'static str,
 }
 
+/// In the page's order [frontend/strings.js]: two per row on a computer, as the organisers laid them out.
 pub const CATEGORIES: [Category; 8] = [
-    Category { code: "new_contact", lv: "Jauns kontakts", en: "A new contact" },
-    Category { code: "business", lv: "Biznesa attīstība", en: "Business growth" },
     Category { code: "collaboration", lv: "Sadarbība", en: "Collaboration" },
-    Category { code: "event", lv: "Pasākuma apmeklējums", en: "An event" },
+    Category { code: "business", lv: "Uzņēmuma attīstība", en: "Company growth" },
     Category { code: "idea", lv: "Jauna biznesa ideja", en: "A new business idea" },
-    Category { code: "career", lv: "Karjeras pavērsiens", en: "A career move" },
+    Category { code: "event", lv: "Pasākuma apmeklējums", en: "An event" },
+    Category { code: "career", lv: "Karjeras pārmaiņas", en: "A career change" },
+    Category { code: "friendship", lv: "Jauna draudzība", en: "A new friendship" },
     Category { code: "trip", lv: "Ceļojums", en: "A trip" },
-    Category { code: "other", lv: "Cits", en: "Something else" },
+    Category { code: "other", lv: "Cits, vēl labāks stāsts!", en: "Another, even better story!" },
 ];
 
 /// The page's languages.

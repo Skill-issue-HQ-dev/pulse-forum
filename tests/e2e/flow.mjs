@@ -1,5 +1,5 @@
 // The flow gate: the guest flow at phone and desktop sizes in Chromium and WebKit with the collector mocked: language,
-// steps, validation, sending, thanks, confetti, the pulse, reduced motion, the phone's Back button.
+// steps, validation, the break option, sending, thanks, confetti, the pulse, reduced motion, the phone's Back button.
 // Invariant: exits 1 on any failed check. Run: PLAYWRIGHT_CORE=<playwright-core index.mjs> node tests/e2e/flow.mjs <base url> <shots dir>
 const { chromium, webkit } = await import(process.env.PLAYWRIGHT_CORE || "playwright-core");
 const [base, shots] = process.argv.slice(2);
@@ -62,6 +62,12 @@ async function flow(engine, browser, [w, h]) {
   await railClear(page, `${label} step1`);
   check(`${label}: pulse on the rail`, (await page.$$(".rail .mk-comet")).length === 4);
   check(`${label}: bar colour coal in the flow`, (await page.getAttribute("#theme-color", "content")) === "#2B2D2C");
+  if (w >= 860) {
+    // on a computer the eight answers sit two per row, in the organisers' order
+    const grid = await page.evaluate(() => [...document.querySelectorAll("#choices .choice")].map((c) => [Math.round(c.getBoundingClientRect().top), c.textContent]));
+    const rows = [0, 2, 4, 6].map((i) => grid[i][0] === grid[i + 1][0] && grid[i][0] < (grid[i + 2] || [Infinity])[0]);
+    check(`${label}: answers two per row, organisers' order`, rows.every(Boolean) && grid[7][1] === "Cits, vēl labāks stāsts!", grid.map((g) => g[1]).join(" | "));
+  }
   await page.click("#cat-idea");
   await page.click("#step1 [data-next]");
   await page.fill("#story", "Kafijas pauzē iepazinos ar producenti no Tallinas, un pēc mēneša mēs jau kopā vadījām festivāla skatuvi.");
@@ -129,12 +135,51 @@ async function edgeCases(browser) {
   await p4.close();
 }
 
+/** The break option: an empty story is refused until the guest ticks it; then no story and no share go out. */
+async function breakOption(engine, browser) {
+  const check = (name, ok, detail) => results.push({ name: `${engine} ${name}`, ok, detail: detail || "" });
+  const p = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  await mock(p);
+  let sent = null;
+  await p.route(`${API}/entry`, (r) => {
+    sent = JSON.parse(r.request().postData());
+    r.fulfill({ status: 200, headers: { "access-control-allow-origin": "*", "content-type": "application/json" }, body: '{"ok":true,"status":"new"}' });
+  });
+  await p.goto(`${base}/index.html`);
+  await p.click("button[data-lang=lv]");
+  await p.click("#cat-friendship");
+  await p.click("#step1 [data-next]");
+  await p.click("#step2 [data-next]");
+  check("break option: an empty story stays on step 2 with a hint", !(await p.isHidden("#step2")) && (await p.textContent("#err-story")) === "Uzraksti stāstu vai izvēlies otru variantu.");
+  await p.fill("#story", "Iesāku rakstīt");
+  await p.click("label.choice--pause");
+  check("break option: ticking it sets the story aside", await p.evaluate(() => document.querySelector("#step2").classList.contains("is-pause") && document.querySelector("#err-story").textContent === ""));
+  await p.type("#story", " un");
+  check("break option: writing takes it back", await p.evaluate(() => !document.querySelector("#pause").checked && !document.querySelector("#step2").classList.contains("is-pause")));
+  await p.click("label.choice--pause");
+  await p.click("#step2 [data-next]");
+  check("break option: Tālāk goes on to the contacts", !(await p.isHidden("#step3")));
+  check("break option: no share box without a story", await p.evaluate(() => document.querySelector("#share").closest(".check").hidden));
+  await p.click(".rules summary");
+  check("rules: seven, the prizes as a list of two", await p.evaluate(() => document.querySelectorAll("#rules-list > li").length === 7 && document.querySelectorAll("#rules-list li li").length === 2));
+  await p.fill("#first", "Anna");
+  await p.fill("#last", "Bērziņa");
+  await p.fill("#email", "anna@example.lv");
+  await p.fill("#phone", "+371 2000 0000");
+  await p.click("label.check:has(#consent)");
+  await p.click("#submit");
+  await p.waitForSelector("#done:not([hidden])", { timeout: 5000 });
+  check("break option: sent with no story and no share", !!sent && sent.story === "" && sent.share === false && sent.category === "friendship", JSON.stringify(sent));
+  await p.close();
+}
+
 for (const [name, type] of [["chromium", chromium], ["webkit", webkit]]) {
   const browser = await type.launch();
   for (const size of SIZES) {
     try { await flow(name, browser, size); } catch (e) { check(`${name} ${size.join("x")}: flow ran`, false, String(e).slice(0, 200)); }
   }
   if (name === "chromium") await edgeCases(browser);
+  try { await breakOption(name, browser); } catch (e) { check(`${name}: break option walk ran`, false, String(e).slice(0, 200)); }
   await browser.close();
 }
 const bad = results.filter((r) => !r.ok);

@@ -1,5 +1,5 @@
 //! Tests for web::api through the real router: health, version, status, and `POST /api/entry` (new, retry, taken,
-//! honeypot, closed, bad JSON, 413, every 422 code, characters not bytes, headers, a database failure).
+//! honeypot, closed, bad JSON, 413, every 422 code, characters not bytes, no story, headers, a database failure).
 
 mod common;
 
@@ -133,12 +133,11 @@ async fn a_body_over_16_kib_is_413_and_exactly_16_kib_is_read() {
 #[tokio::test]
 async fn every_422_code_is_answered_over_http_and_stores_nothing() {
     let app = app();
-    let cases: [(&str, &str, Value); 10] = [
+    let cases: [(&str, &str, Value); 9] = [
         ("token", "token", json!("ABCDEF0123456789abcdef0123456789")),
         ("lang", "lang", json!("de")),
-        ("category", "category", json!("holiday")),
-        ("story_short", "story", json!("too short")),
-        ("story_long", "story", json!("x".repeat(1501))),
+        ("category", "category", json!("new_contact")),
+        ("story_long", "story", json!("x".repeat(501))),
         ("missing", "phone", json!("")),
         ("too_long", "company", json!("c".repeat(121))),
         ("email", "email", json!("nobody@nowhere")),
@@ -161,18 +160,31 @@ async fn every_422_code_is_answered_over_http_and_stores_nothing() {
 async fn lengths_are_characters_not_bytes_over_http() {
     let app = app();
     let mut body = valid_entry(1);
-    body["story"] = json!("ā".repeat(20));
+    body["story"] = json!("ā".repeat(500));
     body["first"] = json!("ž".repeat(80));
     assert_eq!(app.entry(&body).await.json()["status"], "new");
-    let mut short = valid_entry(2);
-    short["story"] = json!("ā".repeat(19));
-    assert_eq!(app.entry(&short).await.json(), refusal("story_short"));
+    let mut long = valid_entry(2);
+    long["story"] = json!("ā".repeat(501));
+    assert_eq!(app.entry(&long).await.json(), refusal("story_long"));
     let mut long_name = valid_entry(3);
     long_name["last"] = json!("ž".repeat(81));
     assert_eq!(app.entry(&long_name).await.json(), refusal("too_long"));
     let mut emoji = valid_entry(4);
-    emoji["story"] = json!("😀".repeat(1500));
-    assert_eq!(app.entry(&emoji).await.json()["status"], "new", "1500 emoji are 1500 characters (6 000 bytes)");
+    emoji["story"] = json!("😀".repeat(500));
+    assert_eq!(app.entry(&emoji).await.json()["status"], "new", "500 emoji are 500 characters (2 000 bytes)");
+}
+
+#[tokio::test]
+async fn an_entry_without_a_story_is_stored_for_the_draw() {
+    // The break option: the page sends an empty story; the entry is in the draw like any other.
+    let app = app();
+    let mut body = valid_entry(1);
+    body["story"] = json!("");
+    let r = app.entry(&body).await;
+    assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true, "status": "new" })));
+    let rows = stored(&app);
+    assert_eq!((rows.len(), rows[0].story.as_str(), rows[0].excluded), (1, "", false));
+    assert_eq!(app.get("/api/status").await.json()["count"], 1);
 }
 
 #[tokio::test]

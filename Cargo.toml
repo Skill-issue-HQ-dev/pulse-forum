@@ -1,6 +1,6 @@
 [package]
 name = "pulse-forum"
-version = "0.2.6"
+version = "0.3.0"
 edition = "2021"
 description = "Collector for the PULSE Forum 2026 story draw: entries in, admin draw and Excel export out"
 publish = false

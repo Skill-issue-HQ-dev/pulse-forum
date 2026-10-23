@@ -31,8 +31,8 @@ server parses the bytes as JSON whatever the content type.
 {
   "token": "32 lowercase hex, made by the phone once per entry",
   "lang": "lv",
-  "category": "new_contact",
-  "story": "20-1500 characters after trimming",
+  "category": "friendship",
+  "story": "empty [the break option: no story, still in the draw] or up to 500 characters after trimming",
   "first": "1-80", "last": "1-80",
   "email": "one @, a dot two characters from the end, max 120",
   "phone": "+ only first, digits, spaces, - ( ) .; 7-15 digits",
@@ -43,8 +43,8 @@ server parses the bytes as JSON whatever the content type.
 }
 ```
 
-- `lang`: `lv` | `en`. `category`: `new_contact`, `business`, `collaboration`, `event`, `idea`, `career`,
-  `trip`, `other`.
+- `lang`: `lv` | `en`. `category`: `collaboration`, `business`, `idea`, `event`, `career`, `friendship`,
+  `trip`, `other` [the page's order; `new_contact` was retired on 23.10.2026 and is refused].
 - Length rules count characters, not bytes (ā is one). Fields are trimmed before every check and stored trimmed.
 - `website` is the honeypot: when it is not empty the answer is `{"ok":true,"status":"new"}` and NOTHING is
   stored.
@@ -55,9 +55,9 @@ server parses the bytes as JSON whatever the content type.
   - 200 `{"ok":true,"status":"taken"}`: this e-mail (trimmed, lower case) is already in the draw under another
     token; the first entry is kept unchanged.
   - 400 `{"ok":false,"error":"json"}`: not JSON or wrong field types.
-  - 422 `{"ok":false,"error":CODE}`, CODE one of `token`, `lang`, `category`, `story_short`, `story_long`,
-    `missing` (first, last, e-mail or phone empty), `too_long`, `email`, `phone`, `consent`. First failing rule
-    wins, checked in that order.
+  - 422 `{"ok":false,"error":CODE}`, CODE one of `token`, `lang`, `category`, `story_long`, `missing` (first,
+    last, e-mail or phone empty), `too_long`, `email`, `phone`, `consent`. First failing rule wins, checked in that
+    order.
   - 423 `{"ok":false,"error":"closed"}`: entries are closed (checked after the honeypot, before the rules).
     Exception: a valid entry whose token is already stored gets 200 `retry`, so a phone whose answer was lost
     near the close still hears it is in the draw.
@@ -74,7 +74,7 @@ Every admin call carries `Authorization: Bearer <PULSE_ADMIN_KEY>`, compared in 
 - `GET /api/admin/entries` -> 200
   ```json
   {"ok":true,"open":true,"count":12,"eligible":10,
-   "entries":[{"id":1,"at":"…","lang":"lv","category":"new_contact","story":"…","first":"…","last":"…",
+   "entries":[{"id":1,"at":"…","lang":"lv","category":"friendship","story":"…","first":"…","last":"…",
                "email":"…","phone":"…","company":"","share":false,"excluded":false,"won":null,"dup_of":null}],
    "draws":[{"n":1,"at":"…","pool":10,"winner_id":5,"pool_ids":[1,2,4]}]}
   ```
@@ -84,7 +84,7 @@ Every admin call carries `Authorization: Bearer <PULSE_ADMIN_KEY>`, compared in 
 - `GET /api/admin/export.xlsx` -> 200 workbook,
   `content-type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`,
   `content-disposition: attachment; filename="PULSE izloze YYYY-MM-DD HH-MM.xlsx"` (Riga wall clock, ASCII).
-  Sheets: `Stāsti` (one row per entry: Nr., Iesniegts Rīgas laikā, Valoda, Kategorija [Latvian label], Stāsts,
+  Sheets: `Stāsti` (one row per entry: Nr., Iesniegts Rīgas laikā, Valoda, Kategorija [Latvian label], Stāsts [empty: the break option],
   Vārds, Uzvārds, E-pasts, Tālrunis, Uzņēmums, Drīkst publicēt stāstu [JĀ/NĒ], Izslēgts no izlozes [JĀ/NĒ],
   Uzvarētājs izlozē Nr., Tas pats tālrunis kā Nr.), `Izlozes` (Nr., Laiks Rīgā, Dalībnieku skaits izlozē,
   Uzvarētājs [entry Nr. + name], Izlozē piedalījās Nr.), `Eksports` (when, how many entries, open or closed). Phone stays text.
@@ -106,11 +106,11 @@ Every admin call carries `Authorization: Bearer <PULSE_ADMIN_KEY>`, compared in 
 
 | code | LV | EN |
 |---|---|---|
-| new_contact | Jauns kontakts | A new contact |
-| business | Biznesa attīstība | Business growth |
 | collaboration | Sadarbība | Collaboration |
-| event | Pasākuma apmeklējums | An event |
+| business | Uzņēmuma attīstība | Company growth |
 | idea | Jauna biznesa ideja | A new business idea |
-| career | Karjeras pavērsiens | A career move |
+| event | Pasākuma apmeklējums | An event |
+| career | Karjeras pārmaiņas | A career change |
+| friendship | Jauna draudzība | A new friendship |
 | trip | Ceļojums | A trip |
-| other | Cits | Something else |
+| other | Cits, vēl labāks stāsts! | Another, even better story! |

@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=683fdb04">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://skill-issue-hq-dev.github.io/pulse-forum/">
-<meta property="og:title" content="Where did a new contact take you? / Kurp Tevi aizveda jauns kontakts?">
+<meta property="og:title" content="Where did a new contact take you? / Kur Tevi aizveda jauns kontakts?">
 <meta property="og:description" content="PULSE Forum 2026: share your story, win a SIXT ride to the forum. Dalies ar stāstu un laimē SIXT braucienu uz forumu.">
 <meta property="og:image" content="https://skill-issue-hq-dev.github.io/pulse-forum/img/og.png">
 <meta property="og:image:width" content="1200">
@@ -26,9 +26,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preload" href="fonts/saira-extra-condensed-latin-700-normal.woff2?v=4e78a0c7" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="fonts/barlow-condensed-latin-500-normal.woff2?v=bb2ad530" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="styles.css?v=1e407424">
-<link rel="stylesheet" href="motion.css?v=7b7c42ed">
-<script type="module" src="app.js?v=2469bc44"></script>
+<link rel="stylesheet" href="styles.css?v=e2cd2453">
+<link rel="stylesheet" href="motion.css?v=a1c59de7">
+<script type="module" src="app.js?v=5345cbb6"></script>
 </head>
 <body>
 
@@ -38,7 +38,7 @@
     <div class="cover-body">
       <p class="date">28–29.10.2026 / Hanzas perons</p>
       <h1 class="display" id="start-title" lang="en">Where did a new contact take you?</h1>
-      <p class="display display--echo" lang="lv">Kurp Tevi aizveda jauns kontakts?</p>
+      <p class="display display--echo" lang="lv">Kur Tevi aizveda jauns kontakts?</p>
       <div class="lang-pick" role="group" aria-label="Language / Valoda">
         <button type="button" class="btn btn--coal" data-lang="en" lang="en">English</button>
         <button type="button" class="btn btn--coal" data-lang="lv" lang="lv">Latviski</button>
@@ -58,9 +58,9 @@
       <legend class="sr" data-t="step1Legend">Kategorija</legend>
       <p class="step-label"><span class="dots" aria-hidden="true"><i class="on now"></i><i></i><i></i></span><span data-t="step1Label">Kategorija</span></p>
       <div class="step-q">
-        <h2 class="display" data-t="question">Kurp Tevi aizveda jauns kontakts?</h2>
+        <h2 class="display" data-t="question">Kur Tevi aizveda jauns kontakts?</h2>
         <p class="lead" data-t="lead">…</p>
-        <p class="prize" data-t="prize">…</p>
+        <p class="prize"><span class="prize-line" data-t="prize">…</span><span class="prize-line" data-t="prizeToday">…</span></p>
       </div>
       <div class="step-a">
         <div class="choices" role="radiogroup" aria-labelledby="choices-title" aria-describedby="err-category">
@@ -80,9 +80,11 @@
         <label class="lead" for="story" data-t="storyLead">…</label>
       </div>
       <div class="step-a">
-        <textarea id="story" name="story" rows="8" maxlength="3000" data-t-ph="storyPh" aria-describedby="story-count err-story"></textarea>
-        <p class="count" id="story-count" aria-live="polite">0 / 1500</p>
+        <textarea id="story" name="story" rows="8" maxlength="1000" data-t-ph="storyPh" aria-describedby="story-count err-story"></textarea>
+        <p class="count" id="story-count" aria-live="polite">0 / 500</p>
         <p class="err" id="err-story" aria-live="polite"></p>
+        <p class="or" data-t="or">vai</p>
+        <label class="choice choice--pause"><input type="checkbox" id="pause" name="pause"><span class="sq" aria-hidden="true"></span><span class="choice-text" data-t="pause">…</span></label>
         <div class="actions"><button type="button" class="btn btn--line btn--square" data-back data-t-aria="back" aria-label="Atpakaļ"></button><button type="button" class="btn btn--lime" data-next data-t="next">Tālāk</button></div>
       </div>
     </fieldset>
@@ -91,7 +93,7 @@
       <legend class="sr" data-t="step3Legend">Kontakti</legend>
       <p class="step-label"><span class="dots" aria-hidden="true"><i class="on"></i><i class="on"></i><i class="on now"></i></span><span data-t="step3Label">Kontakti</span></p>
       <div class="step-q">
-        <h2 class="display" data-t="contactTitle">Kur Tevi sameklēt, ja uzvarēsi?</h2>
+        <h2 class="display" data-t="contactTitle">Kā ar Tevi sazināties, ja uzvarēsi?</h2>
       </div>
       <div class="step-a">
         <div class="field"><label for="first" data-t="first">Vārds</label><input id="first" name="first" enterkeyhint="next" autocomplete="given-name" autocapitalize="words" maxlength="80" aria-describedby="err-first"><p class="err" id="err-first" aria-live="polite"></p></div>

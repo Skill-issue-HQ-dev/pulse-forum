@@ -21,9 +21,9 @@ pub const MAX_BODY_BYTES: usize = 16 * 1024;
 
 /// A phone-made entry token: 32 lowercase hex characters.
 pub const TOKEN_CHARS: usize = 32;
-/// Field limits in characters (not bytes), counted after trimming.
-pub const STORY_MIN_CHARS: usize = 20;
-pub const STORY_MAX_CHARS: usize = 1500;
+/// Field limits in characters (not bytes), counted after trimming. The story has no minimum: an empty one is the
+/// guest's break option [no story now, still in the draw]; the page asks a written one for at least a character.
+pub const STORY_MAX_CHARS: usize = 500;
 pub const NAME_MAX_CHARS: usize = 80;
 pub const EMAIL_MAX_CHARS: usize = 120;
 pub const COMPANY_MAX_CHARS: usize = 120;
