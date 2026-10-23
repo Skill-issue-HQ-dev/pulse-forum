@@ -76,3 +76,5 @@
   "Bez stāsta"]. Share image re-rendered from the cover. tests/frontend_rules.rs holds the page's categories and
   limits to the collector's. Open with the operator: rule 1 [organisers + questions address] was not in their list
   and stays; their data rule says "only for the draw and contact" while the optional share box stays.
+- v0.3.001: the share image's Latvian line says "Kur" [rendered from the cover version that made it, 0 px off
+  before the edit; after it only that line's box changed].
