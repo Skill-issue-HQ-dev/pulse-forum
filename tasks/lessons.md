@@ -22,3 +22,7 @@
   edge needs the page to scroll inside an element that reaches under the bar [overflow hidden on html only: one on
   body clips that element]. A keyboard can then leave the whole page pushed up: put it back once no text field has
   the focus. Test with real gestures [idb on a headless simulator]; give a debug script a ?v= or Safari serves it stale.
+- A phone on its side is a short, wide window [956 x 330 on an iPhone 17 Pro Max, Safari's bars on top], and a
+  layout chosen by width alone gives it the computer cover or the portrait one sideways. Gate both orientations. On
+  iPhone every screen's content must centre and end above --bar-zone in every layout: what sits in main's hidden
+  strip cannot be reached, the page itself never scrolls.

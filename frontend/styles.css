@@ -247,11 +247,12 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
 /* Wider screens: the cover lays out like the brand book, the mark on the left: full height on a wide window, narrower
    on a narrow one so the words always keep room; its line still runs from the top edge to the bottom [pulse.js].
    Mark and words sit centred as one group; the words' column is about as wide as the headline, so a wide window
-   leaves equal room on both sides instead of an empty band on the right. */
+   leaves equal room on both sides instead of an empty band on the right. The group centres above --bar-zone, so an
+   iPad shows it whole. */
 @media (min-width: 860px) {
   :root { --gutter: 6vw; --rail-w: 6rem; }
   body { font-size: 1.3125rem; }
-  .screen--lime { display: grid; grid-template-columns: auto minmax(0, 34rem); justify-content: center; align-items: center; column-gap: 5vw; padding: 0 var(--gutter); }
+  .screen--lime { display: grid; grid-template-columns: auto minmax(0, 34rem); justify-content: center; align-items: center; column-gap: 5vw; padding: 0 var(--gutter) var(--bar-zone); }
   .cover-mark { width: min(100svh * 0.7107, 44vw); margin: 0; }
   .cover-body { padding: 3rem 0; margin: 0; max-width: none; }
   .cover-body .display:not(.display--echo) { font-size: clamp(2.25rem, min(6.6vw, 10.5svh), 5.25rem); }
@@ -267,4 +268,26 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
   .step > .step-label { grid-column: 1 / -1; }
   .step .display { font-size: clamp(3.5rem, 5.6vw, 6rem); }
   .step-a > :first-child { margin-top: 0; }
+}
+
+/* Phones on their side: the first view is short and wide [956 x 330 on an iPhone 17 Pro Max under Safari's top bars,
+   667 x 311 on an iPhone SE], so the cover lays out like the brand book, the mark on the left as tall as that view,
+   the words on the right in the organisers' phone order [the question, the prize partner, the language buttons; no
+   date line]. The group centres in what the browser's bars leave in view, not in the whole screen: the bottom padding
+   is what 100lvh counts past 100svh [the bars], plus on iPhone the 64px that main reaches past the bottom edge. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .screen--lime {
+    display: grid; grid-template-columns: auto minmax(0, 28rem); justify-content: center; align-items: center; column-gap: 5vw;
+    padding: 0 max(var(--gutter), env(safe-area-inset-right)) calc(100lvh - 100svh + var(--under-bar)) max(var(--gutter), env(safe-area-inset-left));
+  }
+  .cover-mark { width: min(100svh * 0.7107, 44vw); margin: 0; }
+  .cover-body { display: flex; flex-direction: column; padding: 1rem 0; margin: 0; max-width: none; }
+  .cover-body > .date { display: none; }
+  .cover-body > .lang-pick, .cover-body > .live { order: 1; }
+  .cover-body .display:not(.display--echo) { font-size: clamp(1.75rem, 10.5svh, 2.75rem); }
+  .cover-body .display--echo { font-size: clamp(1.125rem, 6svh, 1.5rem); }
+  .partner { flex-direction: row; align-items: center; gap: 0.75rem; margin-top: 1.25rem; }
+  .lang-pick { margin-top: 1.25rem; max-width: none; }
+  .live { margin-top: 1rem; }
+  .live-num { font-size: 2.25rem; }
 }

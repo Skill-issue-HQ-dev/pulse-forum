@@ -4,22 +4,28 @@
 // Run: PLAYWRIGHT_CORE=<path to playwright-core's index.mjs> node tests/e2e/sizing.mjs <site base url> <screenshot dir>
 const { chromium, webkit } = await import(process.env.PLAYWRIGHT_CORE || "playwright-core");
 const [base, out] = process.argv.slice(2);
-// The last five rows are phones as their browsers show the page with the toolbars out [Playwright's device viewports:
-// iPhone Plus/Pro Max, 16 Pro, 15/16, 16e, mini]: the first view a guest really gets, not the full screen.
+// The row of five after 320 x 568 is phones as their browsers show the page with the toolbars out [Playwright's device
+// viewports: iPhone Plus/Pro Max, 16 Pro, 15/16, 16e, mini]: the first view a guest really gets, not the full screen.
+// The last row is phones on their side: iPhone 17 Pro Max, 17, 16e and SE in Safari [iOS 26, the SE with and without
+// its tab bar, the 17 by the same bars as the Pro Max], then Pixel 7, Pixel 5 and Galaxy A55 [Playwright's viewports].
 const SIZES = [[2560, 1440], [1920, 1080], [1536, 864], [1440, 900], [1366, 768], [1280, 800], [1280, 600], [1180, 820],
   [1100, 800], [1024, 768], [960, 640], [900, 1000], [880, 700], [860, 900], [859, 900], [820, 1180], [768, 1024],
   [700, 900], [600, 800], [480, 900], [430, 932], [414, 896], [390, 844], [393, 852], [375, 667], [360, 640], [320, 568],
-  [430, 739], [402, 681], [393, 659], [390, 651], [375, 629]];
+  [430, 739], [402, 681], [393, 659], [390, 651], [375, 629],
+  [956, 330], [874, 292], [844, 326], [667, 311], [667, 265], [863, 360], [802, 293], [1040, 480]];
 // SIZING_ONLY="390x844,1280x800" limits a quick run to those sizes [the live resizes are skipped then].
 const ONLY = (process.env.SIZING_ONLY || "").split(",").filter(Boolean);
-const RESIZES = [[1000, 800], [860, 700], [859, 700], [600, 900], [390, 844], [1280, 800], [1600, 700], [900, 1000], [1237, 767]];
-const LV = new Set(["2560x1440", "1920x1080", "1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
-const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568", "390x651"]);
+// The live resizes include a phone turned on its side mid-visit [390 x 844 to 844 x 390].
+const RESIZES = [[1000, 800], [860, 700], [859, 700], [600, 900], [390, 844], [844, 390], [1280, 800], [1600, 700], [900, 1000], [1237, 767]];
+const LV = new Set(["2560x1440", "1920x1080", "1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568", "956x330", "667x265"]);
+const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568", "390x651", "956x330", "667x265"]);
 
 /** In the page: every layout fault of the visible screen, as text. */
 function faults(first) {
   const vw = document.documentElement.clientWidth, vh = innerHeight, f = [];
-  const phone = vw < 860;
+  // a phone on its side [short and wide] lays the cover out beside the logo, not under it
+  const side = matchMedia("(orientation: landscape) and (max-height: 500px)").matches;
+  const phone = vw < 860 && !side;
   if (document.documentElement.scrollWidth > vw + 1) f.push(`sideways scroll ${document.documentElement.scrollWidth}>${vw}`);
   const screen = document.querySelector({ flow: "#entry", start: "#start", done: "#done" }[document.body.dataset.screen]);
   const shown = (el) => { const r = el.getBoundingClientRect(); return r.width > 0 && !el.closest("[hidden]") && !el.closest(".hp"); };
@@ -96,6 +102,10 @@ function faults(first) {
     }
     const body = screen.querySelector(".cover-body").getBoundingClientRect();
     if (phone && body.top < letters.bottom - 1) f.push("text overlaps the logo letters");
+    if (side && body.left < box.right - 1) f.push("text overlaps the logo");
+    // on a phone either way up there is no date line [the organisers' call]
+    const date = screen.querySelector(".date");
+    if ((phone || side) && date && shown(date)) f.push("date line shown on a phone");
     if (!phone && body.width < 300) f.push(`text column only ${Math.round(body.width)} px`);
     // on a computer the logo and the words sit centred as one group: the room left of the logo matches the room right
     // of the words [measured on the words themselves, not their column]
@@ -116,9 +126,9 @@ function faults(first) {
       const [a, b] = [...pick.querySelectorAll("button")].map((x) => x.getBoundingClientRect());
       if (Math.abs(a.width - b.width) > 1) f.push(`language buttons unequal ${Math.round(a.width)} vs ${Math.round(b.width)}`);
       if (first && pick.getBoundingClientRect().bottom > vh) f.push("language buttons below the fold");
-      // on a phone the prize partner sits right under the question, before the buttons [the organisers' order], and
-      // its SIXT logo is in the first view
-      if (phone) {
+      // on a phone [either way up] the prize partner sits right under the question, before the buttons [the
+      // organisers' order], and its SIXT logo is in the first view
+      if (phone || side) {
         const sixt = screen.querySelector(".partner img").getBoundingClientRect();
         const echo = screen.querySelector(".display--echo").getBoundingClientRect();
         if (sixt.top < echo.bottom || sixt.bottom > pick.getBoundingClientRect().top) f.push("prize partner not between the question and the buttons");

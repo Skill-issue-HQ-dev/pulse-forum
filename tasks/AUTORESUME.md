@@ -101,3 +101,11 @@
   can still push the whole page up and Safari leaves it there [seen at 104px]: scroll.js puts it back once no text
   field has the focus. Checked in the simulator with real taps and swipes [idb]: cover, steps 1 and 3 at their end,
   thanks, the push-and-close case; computers and Android unchanged pixel for pixel.
+- v0.3.005 [25.10]: a phone on its side shows the cover whole. In landscape Safari puts its bars on top, so the cover
+  centred its logo and words in a screen 174px taller than the view [956 x 330 on an iPhone 17 Pro Max]: the letters
+  were cut and the SIXT logo could not be reached at all; the iPhone SE and 16e [under 860 px wide] got the portrait
+  cover sideways, a giant logo with the words below the first view. Phones on their side [landscape, at most 500px
+  tall] now get the brand-book layout sized to the view, in the organisers' phone order [no date line; the question,
+  SIXT, the buttons], and the wide cover centres above --bar-zone [an iPad showed it 70px low]. Sizing gate: eight
+  landscape sizes, red on v0.3.004, green now; simulator: SE, 16e, 17 Pro Max [cover, question 1, thanks] and iPad
+  Pro 11; computers, Android and iPhone portrait unchanged pixel for pixel.
