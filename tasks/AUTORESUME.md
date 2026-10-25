@@ -88,3 +88,10 @@
   Latvian line, an English term]; the Latvian prizes say "ceļojumu koferis", never "čemodāns". Gate rules added:
   on a phone the prize partner sits between the question and the buttons and its logo is in the first view; five
   phone sizes as the browser shows them.
+- v0.3.003 [25.10]: on iPhone Safari [iOS 26] the L-line reaches the screen's bottom edge. Safari paints the page
+  under its floating bar down to the edge, but 100lvh stops 58px above it [the same on iPhone SE, 16e, 17 and 17 Pro
+  Max in the simulator], so every screen ended there and the strip under the bar was plain colour. On iOS every screen
+  now reaches 64px past 100lvh [desktop and Android unchanged], and the thank-you confetti box is no longer fixed [a
+  fixed box at the bottom edge makes Safari paint that strip solid]. Scrolled to its very end, any page shows only its
+  colour under the bar. New check tests/ios/edge.sh [simulator: the pixel under the line against one beside it]:
+  exit 1 on v0.3.002, 0 now; cover, step 2 and thanks checked on the 17 Pro Max, cover and thanks on the SE.

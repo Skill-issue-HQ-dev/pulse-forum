@@ -32,8 +32,14 @@
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
   --line2-left: 53.24%;
   --line2-w: 7.01%;
+  /* How far a screen reaches past 100lvh; iOS sets it below. */
+  --under-bar: 0px;
   color-scheme: light;
 }
+/* iPhone Safari [iOS 26] paints the page under its floating bar down to the screen's bottom edge, but 100lvh stops
+   58px above that edge [same on iPhone SE, 16e, 17 and 17 Pro Max]: each screen reaches 64px further, so the line
+   meets the edge. Scrolled to its very end, any page shows only its colour under the bar; nothing can draw there. */
+@supports (-webkit-touch-callout: none) { :root { --under-bar: 64px; } }
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
@@ -104,11 +110,11 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 
 /* Lime screens: start and done, the brand book cover in portrait */
-/* A screen is at least as tall as the largest view a phone gives it [toolbars hidden], so the line always reaches
-   the bottom edge. On phones the mark is centred and as wide as the text column under it [--mark-w, from the
-   screen's own width: container units, so a desktop scrollbar never pushes it out]. */
+/* A screen is at least as tall as the largest view a phone gives it [toolbars hidden, plus what iPhone Safari paints
+   under its bar], so the line always reaches the bottom edge. On phones the mark is centred and as wide as the text
+   column under it [--mark-w, from the screen's own width: container units, so a desktop scrollbar never pushes it out]. */
 .screen--lime {
-  position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden; container-type: inline-size;
+  position: relative; min-height: 100vh; min-height: calc(100lvh + var(--under-bar)); overflow: hidden; container-type: inline-size;
   background: var(--lime); color: var(--coal); padding-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
   --mark-w: min(100cqw - 2 * var(--gutter), 27.5rem);
 }
@@ -145,7 +151,7 @@ button, input, textarea { font: inherit; color: inherit; }
 
 /* The flow on coal, with the PULSE rail on the right like the brand book pages */
 .flow {
-  position: relative; min-height: 100vh; min-height: 100lvh; overflow: hidden;
+  position: relative; min-height: 100vh; min-height: calc(100lvh + var(--under-bar)); overflow: hidden;
   padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(2.25rem, calc(env(safe-area-inset-bottom) + 1.25rem)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }

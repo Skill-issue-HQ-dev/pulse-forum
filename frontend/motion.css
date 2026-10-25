@@ -60,8 +60,9 @@
 }
 @keyframes sweep { from { transform: translateX(-100%); } to { transform: translateX(260%); } }
 
-/* Thank you: square confetti in the brand's colours, once */
-.confetti { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+/* Thank you: square confetti in the brand's colours, once. Its box lies over the screen, never fixed: iPhone Safari
+   paints a fixed box at the bottom edge solid under its bar, and that cut the line short. */
+.confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
 .cf {
   position: absolute; top: -24px; left: var(--x); width: var(--s); height: var(--s); background: var(--c);
   animation: fall var(--t) var(--d) cubic-bezier(0.25, 0.6, 0.45, 1) both;

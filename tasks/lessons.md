@@ -14,3 +14,7 @@
 - Check the fold at the size the browser shows, not the screen's: Safari with its toolbars out shows 390 x 664 of a
   390 x 844 iPhone [Playwright's device viewports]. The gate passed at 390 x 844 while guests had the SIXT logo
   144 px below the fold.
+- iPhone Safari [iOS 26] shows the page under its floating bar only where the document reaches: 100lvh ends 58px
+  above the screen's edge, so a one-screen page must reach past it. Fixed boxes are cut at the visible bottom, and a
+  fixed box touching the bottom edge makes Safari paint the strip under the bar solid. Playwright sees none of this:
+  check in the iOS simulator [tests/ios/edge.sh].
