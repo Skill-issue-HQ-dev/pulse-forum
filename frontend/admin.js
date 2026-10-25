@@ -3,7 +3,7 @@
 // Invariant: guest text is only ever set as textContent, and the key never leaves this tab except to API.
 
 import { API } from "./config.js?v=e1e99649";
-import { CATEGORIES, T } from "./strings.js?v=353a0821";
+import { CATEGORIES, T } from "./strings.js?v=05228ea6";
 
 const KEY_STORE = "pulse-admin-key";
 const REFRESH_MS = 20000;

@@ -11,3 +11,6 @@
   pulse that stops short reads as broken. Measure the line's end against the screen per step, not only the first.
 - Test layouts as a matrix of window sizes AND live resizing [860-1100 px wide broke the PC cover], and measure
   geometry after fonts load: one fit at page load goes stale. Refit on ResizeObserver, not window resize.
+- Check the fold at the size the browser shows, not the screen's: Safari with its toolbars out shows 390 x 664 of a
+  390 x 844 iPhone [Playwright's device viewports]. The gate passed at 390 x 844 while guests had the SIXT logo
+  144 px below the fold.

@@ -2,7 +2,7 @@
 // Owns screens, the draft kept on the phone, and the outbox that resends until the collector answers.
 // Invariant: API is the only address the page calls; "thanks" shows only after the collector stored the entry.
 
-import { CATEGORIES, T } from "./strings.js?v=353a0821";
+import { CATEGORIES, T } from "./strings.js?v=05228ea6";
 import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=e5e071ba";
 import { API } from "./config.js?v=e1e99649";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
@@ -29,9 +29,15 @@ const store = {
 
 const t = (key) => T[state.lang][key];
 
+/** A string into its element; a *starred* English term inside Latvian text becomes an italic <i lang="en">. */
+function setText(el, text) {
+  const term = (words) => Object.assign(document.createElement("i"), { lang: "en", textContent: words });
+  el.replaceChildren(...text.split("*").flatMap((part, i) => (!part ? [] : i % 2 ? [term(part)] : [part])));
+}
+
 function applyLang() {
   document.documentElement.lang = state.lang;
-  for (const el of $$("[data-t]")) el.textContent = t(el.dataset.t);
+  for (const el of $$("[data-t]")) setText(el, t(el.dataset.t));
   for (const el of $$("[data-t-ph]")) el.placeholder = t(el.dataset.tPh);
   for (const el of $$("[data-t-aria]")) el.setAttribute("aria-label", t(el.dataset.tAria));
   for (const code of CATEGORIES) $(`#cat-${code} .choice-text`).textContent = t("categories")[code];

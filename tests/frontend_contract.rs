@@ -9,6 +9,8 @@ const API: &str = "https://dbautomatizacijas.com/pulse/api";
 const HOST: &str = "https://dbautomatizacijas.com";
 /// The page's own address: link previews (og:url, og:image) name it; nothing is ever sent there.
 const SITE: &str = "https://skill-issue-hq-dev.github.io/pulse-forum/";
+/// The prize partner's page: the SIXT logo links there for a guest to open; the page never sends anything there.
+const PARTNER: &str = "https://www.sixt.lv/partners/pulse/";
 
 fn files(ext: &str) -> Vec<(String, String)> {
     let mut out = Vec::new();
@@ -72,7 +74,8 @@ fn no_other_host_appears_in_the_site() {
             let ours = url == HOST || url.starts_with(&format!("{HOST}/pulse/"));
             let svg_namespace = url.starts_with("http://www.w3.org/");
             let own_page = url.starts_with(SITE);
-            assert!(ours || svg_namespace || own_page, "{name}: unexpected address {url}");
+            let partner_link = url == PARTNER && name.ends_with(".html");
+            assert!(ours || svg_namespace || own_page || partner_link, "{name}: unexpected address {url}");
         }
     }
 }

@@ -1,5 +1,6 @@
 // Every word the guest page shows, in Latvian and English, plus the draw categories.
 // Owns copy only; app.js decides when each string appears. A rule is one line, or [its lead, its list items].
+// *Stars* mark an English term left in Latvian text [set in italics]; \u00a0 holds a name, a date or a dash together.
 // Invariant: both languages carry the same keys, and category codes match the collector's list.
 
 // In the page's order: two per row on a computer, as the organisers laid them out; one per row on a phone.
@@ -13,8 +14,8 @@ export const T = {
     step1Label: "Kategorija",
     question: "Kur Tevi aizveda jauns kontakts?",
     lead: "Pastāsti par negaidītāko vai kuriozāko galamērķi, līdz kuram Tevi aizvedusi jauna pazīšanās – neparasta sadarbība, jauna biznesa ideja vai kāds pasākums! Varbūt tas notiks tieši šajā forumā?",
-    prize: "Starp visiem stāstiem izlozēsim braucienu ar SIXT: 29. oktobra rītā uzvarētāju atvedīsim uz forumu [Rīgas robežās].",
-    prizeToday: "Un šodien kāds laimīgais tiks pie SIXT čemodāna!",
+    prize: "Starp visiem stāstiem izlozēsim braucienu ar SIXT *show\u00a0car*\u00a0– Lexus\u00a0RZ! 29.\u00a0oktobra rītā uzvarētāju atvedīsim uz forumu [Rīgas robežās].",
+    prizeToday: "Un šodien kāds laimīgais tiks pie SIXT ceļojumu kofera!",
     pick: "Kas tas bija?",
     next: "Tālāk",
     back: "Atpakaļ",
@@ -73,7 +74,7 @@ export const T = {
       "Izlozi rīko PULSE Forum 2026 organizatori kopā ar SIXT. Jautājumi: info@pulseforum.co.",
       "Piedalīties var PULSE Forum 2026 dalībnieki. Katram ir iespēja piedalīties aktivitātē vienu reizi.",
       "Uzvarētāju nejaušā kārtā izlozēs 28.10.2026 no visiem pieteikumiem. Saziņa ar uzvarētāju notiks, izmantojot norādīto kontaktinformāciju. Ja ar uzvarētāju sazināties neizdosies, izloze tiks veikta vēlreiz.",
-      ["Balvas:", "SIXT čemodāns;", "SIXT brauciens uz PULSE Forum 29.10.2026 rītā Rīgas robežās."],
+      ["Balvas:", "SIXT ceļojumu koferis;", "SIXT brauciens uz PULSE Forum 29.10.2026 rītā Rīgas robežās."],
       "Balvas nav iespējams samainīt pret naudu.",
       "Dati [vārds, uzvārds, e-pasts, tālrunis, uzņēmums un stāsts] tiek izmantoti tikai izlozei un saziņai ar uzvarētāju.",
       "Dati glabājas serverī Eiropas Savienībā un tiks dzēsti līdz 30.11.2026. Lai tos dzēstu agrāk, raksti uz info@pulseforum.co.",
@@ -85,8 +86,8 @@ export const T = {
     step1Legend: "Step 1 of 3: category",
     step1Label: "Category",
     question: "Where did a new contact take you?",
-    lead: "Tell us about the most unexpected or quirkiest destination a new connection has taken you to – an unusual collaboration, a new business idea or an event! Maybe it will happen right here at this forum?",
-    prize: "One story wins a SIXT ride: on the morning of 29 October we drive the winner to the forum [within Riga].",
+    lead: "Tell us about the boldest or most unexpected destination a new connection has taken you to – an unusual collaboration, a new business idea or an event! Maybe it will happen right here at this forum?",
+    prize: "One story wins a ride in the SIXT Lexus\u00a0RZ show\u00a0car! On the morning of 29\u00a0October, we will drive the winner to the forum [within Riga].",
     prizeToday: "And today one lucky person wins a SIXT suitcase!",
     pick: "What was it?",
     next: "Next",

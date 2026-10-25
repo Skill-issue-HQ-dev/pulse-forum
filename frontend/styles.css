@@ -14,6 +14,9 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: "Barlow Condensed"; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-ext-700-normal.woff2?v=0d639d6b") format("woff2");
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+/* Italic only for an English term inside Latvian text [strings.js stars]: English needs the latin set alone. */
+@font-face { font-family: "Barlow Condensed"; font-style: italic; font-weight: 700; font-display: swap; src: url("fonts/barlow-condensed-latin-700-italic.woff2?v=f95611b3") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
 :root {
   --lime: #CBDC3E;
@@ -125,8 +128,13 @@ button, input, textarea { font: inherit; color: inherit; }
 .partner { display: flex; align-items: center; gap: 0.75rem; margin: 1.875rem 0 0; font: 700 1rem/1.2 var(--body); }
 .partner img { height: 2.125rem; width: auto; }
 /* Phones: the line runs on through the text to the bottom and behind the two equal language buttons; the SIXT logo
-   sits at the left under its words, clear of the line, so the line never breaks around it. */
+   sits at the left under its words, clear of the line, so the line never breaks around it. The organisers' order:
+   the question, the prize partner, then the language buttons; no date line, and the words start higher over the
+   line, so the SIXT logo and both buttons fit the first view of a phone browser. */
 @media (max-width: 859px) {
+  .cover-body { display: flex; flex-direction: column; margin-top: calc(var(--mark-w) * -0.18); }
+  .cover-body > .date { display: none; }
+  .cover-body > .lang-pick, .cover-body > .live { order: 1; }
   .lang-pick { max-width: none; }
   /* The words scale with their column [the logo's width], not the window, so a tablet never pushes the buttons down. */
   .cover-body .display:not(.display--echo) { font-size: max(2rem, calc(var(--mark-w) * 0.115)); }

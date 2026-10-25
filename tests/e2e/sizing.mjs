@@ -4,14 +4,17 @@
 // Run: PLAYWRIGHT_CORE=<path to playwright-core's index.mjs> node tests/e2e/sizing.mjs <site base url> <screenshot dir>
 const { chromium, webkit } = await import(process.env.PLAYWRIGHT_CORE || "playwright-core");
 const [base, out] = process.argv.slice(2);
+// The last five rows are phones as their browsers show the page with the toolbars out [Playwright's device viewports:
+// iPhone Plus/Pro Max, 16 Pro, 15/16, 16e, mini]: the first view a guest really gets, not the full screen.
 const SIZES = [[2560, 1440], [1920, 1080], [1536, 864], [1440, 900], [1366, 768], [1280, 800], [1280, 600], [1180, 820],
   [1100, 800], [1024, 768], [960, 640], [900, 1000], [880, 700], [860, 900], [859, 900], [820, 1180], [768, 1024],
-  [700, 900], [600, 800], [480, 900], [430, 932], [414, 896], [390, 844], [393, 852], [375, 667], [360, 640], [320, 568]];
+  [700, 900], [600, 800], [480, 900], [430, 932], [414, 896], [390, 844], [393, 852], [375, 667], [360, 640], [320, 568],
+  [430, 739], [402, 681], [393, 659], [390, 651], [375, 629]];
 // SIZING_ONLY="390x844,1280x800" limits a quick run to those sizes [the live resizes are skipped then].
 const ONLY = (process.env.SIZING_ONLY || "").split(",").filter(Boolean);
 const RESIZES = [[1000, 800], [860, 700], [859, 700], [600, 900], [390, 844], [1280, 800], [1600, 700], [900, 1000], [1237, 767]];
 const LV = new Set(["2560x1440", "1920x1080", "1280x800", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
-const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568"]);
+const SHOT = new Set(["1920x1080", "1280x800", "1024x768", "860x900", "768x1024", "390x844", "375x667", "320x568", "390x651"]);
 
 /** In the page: every layout fault of the visible screen, as text. */
 function faults(first) {
@@ -32,18 +35,20 @@ function faults(first) {
     const range = document.createRange(); range.selectNodeContents(b);
     if (new Set([...range.getClientRects()].map((x) => Math.round(x.top))).size > 1) f.push(`button label wraps: "${b.textContent.trim()}"`);
   }
-  /** Each word of a plain-text element with the top of its line [a word over two lines counts as broken]. */
+  /** Each word of an element's own text and its inline terms [an italic English word], never a list nested in it, with
+      the top of its line [a word over two lines counts as broken]. */
   const words = (el) => {
-    const node = el.firstChild;
-    if (!node || node.nodeType !== 3 || el.childNodes.length !== 1) return [];
-    let at = 0;
+    const nodes = [...el.childNodes].flatMap((n) => (n.nodeType === 3 ? [n] : n.matches("i") ? [...n.childNodes].filter((c) => c.nodeType === 3) : []));
     const out = [];
-    for (const word of node.textContent.split(" ")) {
-      const range = document.createRange();
-      range.setStart(node, at); range.setEnd(node, at + word.length);
-      const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
-      if (word) out.push({ word, top: Math.min(...tops), broken: tops.size > 1 });
-      at += word.length + 1;
+    for (const node of nodes) {
+      let at = 0;
+      for (const word of node.textContent.split(" ")) {
+        const range = document.createRange();
+        range.setStart(node, at); range.setEnd(node, at + word.length);
+        const tops = new Set([...range.getClientRects()].map((r) => Math.round(r.top)));
+        if (word) out.push({ word, top: Math.min(...tops), broken: tops.size > 1 });
+        at += word.length + 1;
+      }
     }
     return out;
   };
@@ -111,6 +116,14 @@ function faults(first) {
       const [a, b] = [...pick.querySelectorAll("button")].map((x) => x.getBoundingClientRect());
       if (Math.abs(a.width - b.width) > 1) f.push(`language buttons unequal ${Math.round(a.width)} vs ${Math.round(b.width)}`);
       if (first && pick.getBoundingClientRect().bottom > vh) f.push("language buttons below the fold");
+      // on a phone the prize partner sits right under the question, before the buttons [the organisers' order], and
+      // its SIXT logo is in the first view
+      if (phone) {
+        const sixt = screen.querySelector(".partner img").getBoundingClientRect();
+        const echo = screen.querySelector(".display--echo").getBoundingClientRect();
+        if (sixt.top < echo.bottom || sixt.bottom > pick.getBoundingClientRect().top) f.push("prize partner not between the question and the buttons");
+        if (first && sixt.bottom > vh) f.push("SIXT logo below the fold");
+      }
     }
   } else {
     const rail = document.querySelector(".rail").getBoundingClientRect();

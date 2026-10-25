@@ -78,3 +78,13 @@
   and stays; their data rule says "only for the draw and contact" while the optional share box stays.
 - v0.3.001: the share image's Latvian line says "Kur" [rendered from the cover version that made it, 0 px off
   before the edit; after it only that line's box changed].
+- v0.3.002 [the organisers' corrections, 25.10]: phones show the SIXT logo without scrolling. On a phone the date
+  line is gone, the prize partner sits right under the question, then the language buttons, and the words start
+  higher over the line: logo, question, SIXT logo and both buttons fit the first view of every phone browser from
+  the iPhone mini up [375 x 629 with the toolbars out; the iPhone SE in Safari keeps the SIXT logo in view, the
+  buttons one short scroll down]. Computers unchanged pixel for pixel. Every SIXT logo links to
+  https://www.sixt.lv/partners/pulse/ in a new tab. Copy: the English lead says "the boldest or most unexpected
+  destination"; the prize line names the SIXT Lexus RZ show car in both languages ["show car" in italics in the
+  Latvian line, an English term]; the Latvian prizes say "ceļojumu koferis", never "čemodāns". Gate rules added:
+  on a phone the prize partner sits between the question and the buttons and its logo is in the first view; five
+  phone sizes as the browser shows them.
