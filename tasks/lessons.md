@@ -18,3 +18,7 @@
   above the screen's edge, so a one-screen page must reach past it. Fixed boxes are cut at the visible bottom, and a
   fixed box touching the bottom edge makes Safari paint the strip under the bar solid. Playwright sees none of this:
   check in the iOS simulator [tests/ios/edge.sh].
+- At the end of a page iPhone Safari shows only the page colour under its bar: a line that must reach the screen's
+  edge needs the page to scroll inside an element that reaches under the bar [overflow hidden on html only: one on
+  body clips that element]. A keyboard can then leave the whole page pushed up: put it back once no text field has
+  the focus. Test with real gestures [idb on a headless simulator]; give a debug script a ?v= or Safari serves it stale.

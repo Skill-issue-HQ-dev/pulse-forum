@@ -95,3 +95,9 @@
   fixed box at the bottom edge makes Safari paint that strip solid]. Scrolled to its very end, any page shows only its
   colour under the bar. New check tests/ios/edge.sh [simulator: the pixel under the line against one beside it]:
   exit 1 on v0.3.002, 0 now; cover, step 2 and thanks checked on the 17 Pro Max, cover and thanks on the SE.
+- v0.3.004 [25.10]: on iPhone the quiz's side line reaches the screen's bottom edge also scrolled to the end of a
+  step. At the end of a page Safari shows only the page colour under its bar, so on iOS the guest page now scrolls
+  inside main, which reaches past that edge; each screen's last buttons keep clear of the bar [--bar-zone]. A keyboard
+  can still push the whole page up and Safari leaves it there [seen at 104px]: scroll.js puts it back once no text
+  field has the focus. Checked in the simulator with real taps and swipes [idb]: cover, steps 1 and 3 at their end,
+  thanks, the push-and-close case; computers and Android unchanged pixel for pixel.

@@ -32,14 +32,22 @@
   /* The PULSE mark's geometry, as fractions of its box [from the brand book cover]. */
   --line2-left: 53.24%;
   --line2-w: 7.01%;
-  /* How far a screen reaches past 100lvh; iOS sets it below. */
+  /* How far a screen reaches past 100lvh, and how much of a screen's end the browser's bar covers; iOS sets both below. */
   --under-bar: 0px;
+  --bar-zone: 0px;
   color-scheme: light;
 }
 /* iPhone Safari [iOS 26] paints the page under its floating bar down to the screen's bottom edge, but 100lvh stops
-   58px above that edge [same on iPhone SE, 16e, 17 and 17 Pro Max]: each screen reaches 64px further, so the line
-   meets the edge. Scrolled to its very end, any page shows only its colour under the bar; nothing can draw there. */
-@supports (-webkit-touch-callout: none) { :root { --under-bar: 64px; } }
+   58px above that edge [same on iPhone SE, 16e, 17 and 17 Pro Max], and at the end of a page it shows only the page's
+   colour there. So on iOS the guest page scrolls inside main, which reaches 64px past 100lvh and so never ends above
+   the edge: the line meets the bottom edge at rest and scrolled to the end alike. Each screen's last words and buttons
+   keep clear of the bar by --bar-zone, the part of main the bar covers. Only html stops scrolling: an overflow on body
+   would clip main at the visible height. */
+@supports (-webkit-touch-callout: none) {
+  :root { --under-bar: 64px; --bar-zone: calc(100lvh - 100svh + var(--under-bar)); }
+  html.guest { overflow: hidden; }
+  html.guest main { height: calc(100lvh + var(--under-bar)); overflow-y: auto; overscroll-behavior: contain; }
+}
 
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; -webkit-tap-highlight-color: transparent; }
@@ -115,7 +123,7 @@ button, input, textarea { font: inherit; color: inherit; }
    column under it [--mark-w, from the screen's own width: container units, so a desktop scrollbar never pushes it out]. */
 .screen--lime {
   position: relative; min-height: 100vh; min-height: calc(100lvh + var(--under-bar)); overflow: hidden; container-type: inline-size;
-  background: var(--lime); color: var(--coal); padding-bottom: max(2rem, calc(env(safe-area-inset-bottom) + 1rem));
+  background: var(--lime); color: var(--coal); padding-bottom: calc(max(2rem, calc(env(safe-area-inset-bottom) + 1rem)) + var(--bar-zone));
   --mark-w: min(100cqw - 2 * var(--gutter), 27.5rem);
 }
 .cover-mark { position: relative; width: var(--mark-w); margin: calc(var(--mark-w) * -0.27) auto 0; color: var(--white); }
@@ -152,7 +160,7 @@ button, input, textarea { font: inherit; color: inherit; }
 /* The flow on coal, with the PULSE rail on the right like the brand book pages */
 .flow {
   position: relative; min-height: 100vh; min-height: calc(100lvh + var(--under-bar)); overflow: hidden;
-  padding: 0 max(var(--gutter), env(safe-area-inset-right)) max(2.25rem, calc(env(safe-area-inset-bottom) + 1.25rem)) max(var(--gutter), env(safe-area-inset-left));
+  padding: 0 max(var(--gutter), env(safe-area-inset-right)) calc(max(2.25rem, calc(env(safe-area-inset-bottom) + 1.25rem)) + var(--bar-zone)) max(var(--gutter), env(safe-area-inset-left));
 }
 .rail { position: absolute; top: 0; right: max(var(--gutter), env(safe-area-inset-right)); width: var(--rail-w); color: var(--white); pointer-events: none; }
 .rail .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 8800; fill: currentColor; overflow: visible; }

@@ -7,6 +7,7 @@ import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from
 import { API } from "./config.js?v=e1e99649";
 import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
 import { startPulse, watchMarks } from "./pulse.js?v=aee39965";
+import { settleAfterKeyboard, toTop } from "./scroll.js?v=4ac86010";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
@@ -127,7 +128,7 @@ function show(screen) {
   document.body.dataset.screen = screen;
   barColour(screen);
   if (fresh && screen !== "flow") startPulse($(`#${screen}`));
-  window.scrollTo(0, 0);
+  toTop();
 }
 
 function goStep(n) {
@@ -365,6 +366,7 @@ function wire() {
     store.set(KEYS.draft, values());
   });
   window.addEventListener("online", () => { if (state.sending) flush(); });
+  settleAfterKeyboard();
 }
 
 function setLang(lang) {
