@@ -22,7 +22,7 @@ service itself sees `/api/...`, `/healthz`, `/version`. Times are RFC 3339 UTC (
 ## Public
 
 `GET /healthz` -> `{"ok":true}` . `GET /version` -> `{"version":"0.1.0"}` . `GET /api/status` -> `{"ok":true,"open":true,"count":12}`
-(count = stored entries, the number the start screen shows; nothing else about them is public)
+(count = stored entries; the page reads only `open` and shows no count since v0.3.006; nothing else about them is public)
 
 `POST /api/entry`: the body is JSON, sent as `text/plain;charset=UTF-8` so the browser skips the preflight; the
 server parses the bytes as JSON whatever the content type.

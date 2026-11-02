@@ -22,8 +22,6 @@
 .cover-body > :nth-child(3) { animation-delay: 1.14s; }
 .cover-body > :nth-child(4) { animation-delay: 1.21s; }
 .cover-body > :nth-child(5) { animation-delay: 1.28s; }
-.cover-body > :nth-child(6) { animation-delay: 1.35s; }
-.live:not([hidden]) { animation: rise-in 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes rise-in { from { opacity: 0; transform: translateY(14px); } }
 /* Phones, either way up: no date line, and the prize partner sits right under the question [styles.css], so it rises
    third. */

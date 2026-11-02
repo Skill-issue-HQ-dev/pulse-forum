@@ -5,17 +5,14 @@
 import { CATEGORIES, T } from "./strings.js?v=05228ea6";
 import { LIMITS, SERVER_CODES, chars, contactErrors, newToken, storyError } from "./form.js?v=e5e071ba";
 import { API } from "./config.js?v=e1e99649";
-import { barColour, buzz, confetti, countUp, lvStories, shake } from "./effects.js?v=8ddf25bb";
+import { barColour, buzz, confetti, shake } from "./effects.js?v=64070df9";
 import { startPulse, watchMarks } from "./pulse.js?v=aee39965";
 import { settleAfterKeyboard, toTop } from "./scroll.js?v=4ac86010";
 
 const KEYS = { lang: "pulse-lang", draft: "pulse-draft", outbox: "pulse-outbox" };
 const RETRY_MS = [3000, 6000, 12000, 20000, 30000];
 const TIMEOUT_MS = 15000;
-const LIVE_FROM = 10;
-const LIVE_EVERY_MS = 20000;
-/** The cover's words have risen by now [motion.css]; the story count joins them, never before them. */
-const INTRO_MS = 1300;
+const STATUS_EVERY_MS = 20000;
 const CONTACT_FIELDS = ["first", "last", "email", "phone", "company"];
 
 const $ = (sel, root = document) => root.querySelector(sel);
@@ -162,7 +159,7 @@ function onBack() {
     goStep(state.step - 1);
   } else {
     show("start");
-    clearTimeout(state.live);
+    clearTimeout(state.poll);
     checkOpen();
   }
 }
@@ -308,7 +305,7 @@ function submit(event) {
   flush();
 }
 
-/** Asks whether entries are open and how many stories are in; repeats while the start screen shows. */
+/** Asks whether entries are still open; repeats while the start screen shows. The page never shows the count. */
 async function checkOpen() {
   try {
     const ctrl = new AbortController();
@@ -316,23 +313,10 @@ async function checkOpen() {
     const res = await fetch(`${API}/status`, { mode: "cors", credentials: "omit", cache: "no-store", signal: ctrl.signal });
     const json = await res.json();
     if (json && json.open === false && !store.get(KEYS.outbox)) return finish("closed");
-    if (json && Number.isInteger(json.count)) showLive(json.count);
   } catch {
     /* offline or slow: let the guest start; the send answers for real */
   }
-  if (document.body.dataset.screen === "start") state.live = setTimeout(checkOpen, LIVE_EVERY_MS);
-}
-
-/** "Jau 128 stāsti / 128 stories so far" on the start screen, once there are enough to be worth showing. */
-function showLive(n) {
-  const live = $("#live");
-  if (n < LIVE_FROM) return;
-  $("#live-lv").textContent = `${lvStories(n)} līdz šim`;
-  $("#live-en").textContent = `${n === 1 ? "story" : "stories"} so far`;
-  setTimeout(() => {
-    live.hidden = false;
-    countUp($("#live-num"), n);
-  }, Math.max(0, INTRO_MS - performance.now()));
+  if (document.body.dataset.screen === "start") state.poll = setTimeout(checkOpen, STATUS_EVERY_MS);
 }
 
 /** Enter on a contact field moves to the next one; on the last it goes to the consent box. */
@@ -346,7 +330,7 @@ function nextOnEnter(e) {
 }
 
 function wire() {
-  for (const b of $$("[data-lang]")) b.addEventListener("click", () => { clearTimeout(state.live); setLang(b.dataset.lang); goStep(1); });
+  for (const b of $$("[data-lang]")) b.addEventListener("click", () => { clearTimeout(state.poll); setLang(b.dataset.lang); goStep(1); });
   $("#entry").addEventListener("keydown", nextOnEnter);
   $("#lang-switch").addEventListener("click", () => setLang(state.lang === "lv" ? "en" : "lv"));
   for (const b of $$("[data-next]")) b.addEventListener("click", () => { if (checkStep(state.step)) goStep(state.step + 1); });

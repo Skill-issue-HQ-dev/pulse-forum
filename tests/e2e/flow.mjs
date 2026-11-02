@@ -49,7 +49,7 @@ async function flow(engine, browser, [w, h]) {
   await page.waitForTimeout(2600);
   await shot({ path: `${shots}/${engine}-${w}-start.png` });
   await noOverflow(page, `${label} start`);
-  check(`${label}: live count shows 37`, (await page.textContent("#live-num")).trim() === "37");
+  check(`${label}: no story count on the cover [37 stored]`, !(await page.$("#live")) && !/37|so far|līdz šim/i.test(await page.innerText("#start")));
   check(`${label}: English is the first language`, (await page.evaluate(() => document.documentElement.lang)) === "en" && (await page.getAttribute(".lang-pick button:first-child", "data-lang")) === "en");
   check(`${label}: pulse on the cover`, (await page.$$("#start .mk-comet")).length === 4);
   check(`${label}: bar colour lime on start`, (await page.getAttribute("#theme-color", "content")) === "#CBDC3E");
@@ -106,12 +106,6 @@ async function edgeCases(browser) {
   await page.waitForSelector("#done:not([hidden])", { timeout: 5000 });
   check("closed status shows the closed screen", /closed|slēgta/i.test(await page.textContent("#done-title")));
   await page.close();
-  const p2 = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await mock(p2, { count: 3 });
-  await p2.goto(`${base}/index.html`);
-  await p2.waitForTimeout(800);
-  check("live count hidden under 10", await p2.evaluate(() => document.querySelector("#live").hidden));
-  await p2.close();
   const p3 = await browser.newPage({ viewport: { width: 390, height: 844 } });
   await p3.emulateMedia({ reducedMotion: "reduce" });
   await mock(p3);

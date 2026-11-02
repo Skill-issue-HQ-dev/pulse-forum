@@ -109,3 +109,8 @@
   SIXT, the buttons], and the wide cover centres above --bar-zone [an iPad showed it 70px low]. Sizing gate: eight
   landscape sizes, red on v0.3.004, green now; simulator: SE, 16e, 17 Pro Max [cover, question 1, thanks] and iPad
   Pro 11; computers, Android and iPhone portrait unchanged pixel for pixel.
+- v0.3.006 [02.11]: the start screen no longer shows how many stories are in. After the event the live count told
+  everyone who opened the page "17 stories so far"; the count is gone with its styles and its intro step [on computers
+  the SIXT line now rises right after the buttons]. The page still asks the collector whether entries are open; the
+  status answer keeps its count, which the page no longer reads [docs/api.md]. Flow gate: no count on the cover with 37
+  stored; the sizing gate unchanged.

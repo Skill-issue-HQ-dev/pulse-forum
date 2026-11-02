@@ -14,7 +14,7 @@ use axum::response::Response;
 use rusqlite::Connection;
 use serde_json::json;
 
-/// `GET /api/status`: `{"ok":true,"open":BOOL,"count":N}`; the count is what the start screen shows.
+/// `GET /api/status`: `{"ok":true,"open":BOOL,"count":N}`; the page reads only `open` [it shows no count since v0.3.006].
 pub async fn status(State(s): State<Shared>) -> Response {
     let conn = db(&s);
     match store::is_open(&conn).and_then(|open| Ok((open, store::count(&conn)?))) {

@@ -1,5 +1,5 @@
-// The page's small extras: the browser bar colour per screen, square confetti, a tap of vibration, a shake on a
-// wrong field, and the live story count that counts up on the start screen.
+// The page's small extras: the browser bar colour per screen, square confetti, a tap of vibration and a shake on a
+// wrong field.
 // Invariant: every effect is optional decoration; with reduced motion or an old phone the flow works the same.
 
 const COLOURS = { lime: "#CBDC3E", coal: "#2B2D2C" };
@@ -46,24 +46,4 @@ export function confetti(box, count = 42) {
   }
   box.replaceChildren(...bits);
   setTimeout(() => box.replaceChildren(), 3600);
-}
-
-/** Latvian takes the singular after 1, 21, 31 … but not 11. */
-export const lvStories = (n) => (n % 10 === 1 && n % 100 !== 11 ? "stāsts" : "stāsti");
-
-/** Counts the number shown in `el` up to `to` over about half a second. */
-export function countUp(el, to) {
-  const from = Number(el.dataset.n || 0);
-  el.dataset.n = String(to);
-  if (still() || from === to || from > to) {
-    el.textContent = String(to);
-    return;
-  }
-  const start = performance.now();
-  const step = (now) => {
-    const k = Math.min(1, (now - start) / 550);
-    el.textContent = String(Math.round(from + (to - from) * (1 - (1 - k) ** 3)));
-    if (k < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
 }

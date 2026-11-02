@@ -26,3 +26,6 @@
   layout chosen by width alone gives it the computer cover or the portrait one sideways. Gate both orientations. On
   iPhone every screen's content must centre and end above --bar-zone in every layout: what sits in main's hidden
   strip cannot be reached, the page itself never scrolls.
+- A live count on a public page shows a small number as plainly as a big one, and it stays after the event: "17
+  stories so far" read as a flop to every later visitor. Leave such a count out, or give it an end [hide it once the
+  event is over].

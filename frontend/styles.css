@@ -136,9 +136,6 @@ button, input, textarea { font: inherit; color: inherit; }
 .cover-mark .mark { width: 100%; height: auto; aspect-ratio: 575.69 / 810; fill: currentColor; overflow: visible; }
 .cover-body { position: relative; z-index: 1; padding: 1.125rem 0 0; margin: 0 auto; max-width: var(--mark-w); }
 .lang-pick { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.75rem; max-width: 28rem; }
-.live { display: flex; align-items: center; gap: 0.875rem; margin: 1.625rem 0 0; }
-.live-num { font: 700 2.875rem/1 var(--display); font-variant-numeric: tabular-nums; }
-.live-words { display: flex; flex-direction: column; font: 700 0.9375rem/1.2 var(--body); text-transform: uppercase; letter-spacing: 0.04em; }
 .partner { display: flex; align-items: center; gap: 0.75rem; margin: 1.875rem 0 0; font: 700 1rem/1.2 var(--body); }
 .partner img { height: 2.125rem; width: auto; }
 /* Phones: the line runs on through the text to the bottom and behind the two equal language buttons; the SIXT logo
@@ -148,7 +145,7 @@ button, input, textarea { font: inherit; color: inherit; }
 @media (max-width: 859px) {
   .cover-body { display: flex; flex-direction: column; margin-top: calc(var(--mark-w) * -0.18); }
   .cover-body > .date { display: none; }
-  .cover-body > .lang-pick, .cover-body > .live { order: 1; }
+  .cover-body > .lang-pick { order: 1; }
   .lang-pick { max-width: none; }
   /* The words scale with their column [the logo's width], not the window, so a tablet never pushes the buttons down. */
   .cover-body .display:not(.display--echo) { font-size: max(2rem, calc(var(--mark-w) * 0.115)); }
@@ -283,11 +280,9 @@ input:-webkit-autofill { -webkit-box-shadow: inset 0 0 0 6.25rem var(--white); -
   .cover-mark { width: min(100svh * 0.7107, 44vw); margin: 0; }
   .cover-body { display: flex; flex-direction: column; padding: 1rem 0; margin: 0; max-width: none; }
   .cover-body > .date { display: none; }
-  .cover-body > .lang-pick, .cover-body > .live { order: 1; }
+  .cover-body > .lang-pick { order: 1; }
   .cover-body .display:not(.display--echo) { font-size: clamp(1.75rem, 10.5svh, 2.75rem); }
   .cover-body .display--echo { font-size: clamp(1.125rem, 6svh, 1.5rem); }
   .partner { flex-direction: row; align-items: center; gap: 0.75rem; margin-top: 1.25rem; }
   .lang-pick { margin-top: 1.25rem; max-width: none; }
-  .live { margin-top: 1rem; }
-  .live-num { font-size: 2.25rem; }
 }
