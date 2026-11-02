@@ -157,7 +157,7 @@ const results = [];
 const note = (label, list) => results.push({ label, list });
 async function mock(p) {
   const cors = { "access-control-allow-origin": "*", "content-type": "application/json" };
-  await p.route("**/pulse/api/status", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"open":true,"count":37}' }));
+  await p.route("**/pulse/api/status", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"open":true}' }));
   await p.route("**/pulse/api/entry", (r) => r.fulfill({ status: 200, headers: cors, body: '{"ok":true,"status":"new"}' }));
 }
 async function walk(p, label, shots, lang = "en") {

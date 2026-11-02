@@ -14,11 +14,11 @@ use axum::response::Response;
 use rusqlite::Connection;
 use serde_json::json;
 
-/// `GET /api/status`: `{"ok":true,"open":BOOL,"count":N}`; the page reads only `open` [it shows no count since v0.3.006].
+/// `GET /api/status`: `{"ok":true,"open":BOOL}` and nothing about the entries [the count is only on the admin list].
 pub async fn status(State(s): State<Shared>) -> Response {
     let conn = db(&s);
-    match store::is_open(&conn).and_then(|open| Ok((open, store::count(&conn)?))) {
-        Ok((open, count)) => reply::ok(json!({ "ok": true, "open": open, "count": count })),
+    match store::is_open(&conn) {
+        Ok(open) => reply::ok(json!({ "ok": true, "open": open })),
         Err(e) => reply::fail(&e),
     }
 }

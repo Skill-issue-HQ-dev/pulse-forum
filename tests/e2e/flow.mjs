@@ -8,9 +8,9 @@ const SIZES = [[360, 640], [375, 667], [390, 844], [430, 932], [1280, 800]];
 const results = [];
 const check = (name, ok, detail = "") => { results.push({ name, ok, detail }); };
 
-async function mock(page, { open = true, count = 37, entry = { status: 200, body: { ok: true, status: "new" } } } = {}) {
+async function mock(page, { open = true, entry = { status: 200, body: { ok: true, status: "new" } } } = {}) {
   const cors = { "access-control-allow-origin": "*", "content-type": "application/json" };
-  await page.route(`${API}/status`, (r) => r.fulfill({ status: 200, headers: cors, body: JSON.stringify({ ok: true, open, count }) }));
+  await page.route(`${API}/status`, (r) => r.fulfill({ status: 200, headers: cors, body: JSON.stringify({ ok: true, open }) }));
   await page.route(`${API}/entry`, async (r) => {
     await new Promise((x) => setTimeout(x, 350));
     r.fulfill({ status: entry.status, headers: cors, body: JSON.stringify(entry.body) });
@@ -49,7 +49,7 @@ async function flow(engine, browser, [w, h]) {
   await page.waitForTimeout(2600);
   await shot({ path: `${shots}/${engine}-${w}-start.png` });
   await noOverflow(page, `${label} start`);
-  check(`${label}: no story count on the cover [37 stored]`, !(await page.$("#live")) && !/37|so far|līdz šim/i.test(await page.innerText("#start")));
+  check(`${label}: no story count on the cover`, !(await page.$("#live")) && !/so far|līdz šim/i.test(await page.innerText("#start")));
   check(`${label}: English is the first language`, (await page.evaluate(() => document.documentElement.lang)) === "en" && (await page.getAttribute(".lang-pick button:first-child", "data-lang")) === "en");
   check(`${label}: pulse on the cover`, (await page.$$("#start .mk-comet")).length === 4);
   check(`${label}: bar colour lime on start`, (await page.getAttribute("#theme-color", "content")) === "#CBDC3E");

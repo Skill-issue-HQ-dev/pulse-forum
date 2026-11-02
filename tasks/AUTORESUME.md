@@ -114,3 +114,6 @@
   the SIXT line now rises right after the buttons]. The page still asks the collector whether entries are open; the
   status answer keeps its count, which the page no longer reads [docs/api.md]. Flow gate: no count on the cover with 37
   stored; the sizing gate unchanged.
+- v0.3.007 [02.11]: the collector's public status answers only whether entries are open. The page had stopped showing
+  the count in v0.3.006, but every visit still fetched it; now only the organisers' list carries it. Tests assert the
+  status shape after entries; the store's public count query is gone.

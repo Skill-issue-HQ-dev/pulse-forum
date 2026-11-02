@@ -162,7 +162,7 @@ async fn open_and_close_switch_the_public_endpoints() {
     let app = app();
     let r = app.admin_post("/api/admin/open", &json!({ "open": false })).await;
     assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true, "open": false })));
-    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": false, "count": 0 }));
+    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": false }));
     assert_eq!(app.list().await["open"], false);
     assert_eq!(app.submit(1).await.status, StatusCode::LOCKED);
     let r = app.admin_post("/api/admin/open", &json!({ "open": true })).await;

@@ -24,12 +24,12 @@ async fn health_version_and_status_answer_json() {
     assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true })));
     assert!(r.header("content-type").starts_with("application/json"));
     assert_eq!(app.get("/version").await.json(), json!({ "version": env!("CARGO_PKG_VERSION") }));
-    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": true, "count": 0 }));
+    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": true }));
     app.submit(1).await;
     app.submit(2).await;
-    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": true, "count": 2 }));
+    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": true }), "nothing about the entries is public");
     app.set_open(false).await;
-    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": false, "count": 2 }));
+    assert_eq!(app.get("/api/status").await.json(), json!({ "ok": true, "open": false }));
 }
 
 #[tokio::test]
@@ -184,7 +184,7 @@ async fn an_entry_without_a_story_is_stored_for_the_draw() {
     assert_eq!((r.status, r.json()), (StatusCode::OK, json!({ "ok": true, "status": "new" })));
     let rows = stored(&app);
     assert_eq!((rows.len(), rows[0].story.as_str(), rows[0].excluded), (1, "", false));
-    assert_eq!(app.get("/api/status").await.json()["count"], 1);
+    assert_eq!(app.list().await["count"], 1);
 }
 
 #[tokio::test]

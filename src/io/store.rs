@@ -202,11 +202,6 @@ pub fn snapshot(conn: &Connection) -> Result<Snapshot, String> {
     Ok(Snapshot { open: is_open(conn)?, rows: list(conn)?, draws: draws(conn)?, eligible: eligible as usize })
 }
 
-/// How many entries are stored: the one number the public status shows (no names, nothing else).
-pub fn count(conn: &Connection) -> Result<i64, String> {
-    conn.query_row("SELECT COUNT(*) FROM entries", [], |r| r.get(0)).map_err(|e| format!("store: count: {e}"))
-}
-
 /// Sets or lifts an entry's exclusion from the draw; false when there is no such entry.
 pub fn exclude(conn: &Connection, id: i64, excluded: bool) -> Result<bool, String> {
     let changed = conn
